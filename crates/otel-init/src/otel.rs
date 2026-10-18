@@ -12,11 +12,8 @@ use opentelemetry_otlp::{
     OTEL_EXPORTER_OTLP_METRICS_ENDPOINT, OTEL_EXPORTER_OTLP_TRACES_ENDPOINT,
 };
 use opentelemetry_sdk::{
-    Resource,
-    logs::SdkLoggerProvider,
-    metrics::SdkMeterProvider,
-    propagation::TraceContextPropagator,
-    trace::SdkTracerProvider,
+    Resource, logs::SdkLoggerProvider, metrics::SdkMeterProvider,
+    propagation::TraceContextPropagator, trace::SdkTracerProvider,
 };
 use std::env::var;
 

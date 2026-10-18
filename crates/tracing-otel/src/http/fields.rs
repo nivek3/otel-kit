@@ -1,7 +1,7 @@
 //! HTTP request field extraction utilities.
 
-use http::{HeaderName, Request};
 pub use http::header::FORWARDED;
+use http::{HeaderName, Request};
 
 pub const X_REQUEST_ID: HeaderName = HeaderName::from_static("x-request-id");
 pub const REQUEST_ID: HeaderName = HeaderName::from_static("request-id");
