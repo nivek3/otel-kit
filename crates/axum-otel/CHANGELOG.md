@@ -8,6 +8,12 @@ All notable changes to this project will be documented in this file.
 
 - Update the quick start to the current `Logger` bootstrap and Axum 0.8 APIs, removing obsolete OTLP pipeline calls.
 
+## [0.34.0]
+
+### Breaking Changes
+
+- Upgrade HTTP tracing to OpenTelemetry `0.33` and `tracing-opentelemetry` `0.34`. Applications that integrate OpenTelemetry directly must use compatible versions.
+
 ## [0.33.1](https://github.com/nivek3/otel-kit/compare/axum-otel-v0.33.0...axum-otel-v0.33.1)
 
 ### Changed

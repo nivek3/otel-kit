@@ -21,6 +21,12 @@ All notable changes to this project will be documented in this file.
 - Remove `Logger::sample_ratio`, `with_sample_ratio`, `default::sample_ratio`, and the sample-ratio argument to `setup_tracing`. `LOG_SAMPLE_RATIO` no longer configures sampling. Use `OTEL_TRACES_SAMPLER=parentbased_traceidratio` and `OTEL_TRACES_SAMPLER_ARG` instead; without configuration, the SDK uses `parentbased_always_on`.
 - Remove `Logger::metrics_interval_secs`, `with_metrics_interval_secs`, `default::metrics_interval_secs`, and the interval argument to `setup_tracing`. `LOG_METRICS_INTERVAL_SECS` no longer configures collection. Use `OTEL_METRIC_EXPORT_INTERVAL` in milliseconds; the SDK default is 60 seconds instead of the previous Logger default of 30 seconds.
 
+## [0.34.0]
+
+### Breaking Changes
+
+- Upgrade HTTP propagation, trace context utilities, and Logger integration to OpenTelemetry `0.33` and `tracing-opentelemetry` `0.34`. Downstream applications must align their OpenTelemetry types and tracing bridge versions.
+
 ## [0.33.1]
 
 ### Added

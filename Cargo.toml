@@ -11,7 +11,7 @@ resolver = "2"
 
 [workspace.package]
 rust-version = "1.96.0"
-version = "0.33.2"
+version = "0.34.0"
 authors = ["nivek <h49987180@gmail.com>"]
 edition = "2024"
 license = "MIT/Apache-2.0"
@@ -33,9 +33,9 @@ categories = ["asynchronous"]
 
 [workspace.dependencies]
 # workspace crates
-axum-otel = { path = "crates/axum-otel", version = "0.33.2" }
-otel-init = { path = "crates/otel-init", version = "0.33.2" }
-tracing-otel = { path = "crates/tracing-otel", version = "0.33.2" }
+axum-otel = { path = "crates/axum-otel", version = "0.34.0" }
+otel-init = { path = "crates/otel-init", version = "0.34.0" }
+tracing-otel = { path = "crates/tracing-otel", version = "0.34.0" }
 
 # external crates
 anyhow = "1.0"
@@ -45,26 +45,26 @@ config = { version = "0.15.0", default-features = false }
 dotenv = { package = "dotenvy", version = "0.15.7" }
 http = { version = "1.3.1" }
 http-body-util = { version = "0.1" }
-opentelemetry = { version = "0.32.0", default-features = false }
-opentelemetry-appender-tracing = { version = "0.32.0" }
-opentelemetry-http = { version = "0.32.0", default-features = false }
-opentelemetry-otlp = { version = "0.32.0", features = [
+opentelemetry = { version = "0.33", default-features = false }
+opentelemetry-appender-tracing = { version = "0.33" }
+opentelemetry-http = { version = "0.33", default-features = false }
+opentelemetry-otlp = { version = "0.33", features = [
     "grpc-tonic",
     "http-json",
     "http-proto",
-    "tls",
+    "tls-ring",
     "reqwest-rustls",
 ] }
-opentelemetry_sdk = { version = "0.32.0", default-features = false, features = [
+opentelemetry_sdk = { version = "0.33", default-features = false, features = [
     "trace",
     "logs",
 ] }
 
 # reqwest (used in examples)
 reqwest = { version = "0.13.1", features = ["json"] }
-reqwest-middleware = "0.5.1"
-reqwest-retry = "0.9.1"
-reqwest-tracing = { version = "0.7.1", features = ["opentelemetry_0_32"] }
+reqwest-middleware = { git = "https://github.com/TrueLayer/reqwest-middleware", rev = "75197ef573cc5f9aec9b0c934e3114950c5cf1e4" }
+reqwest-retry = { git = "https://github.com/TrueLayer/reqwest-middleware", rev = "75197ef573cc5f9aec9b0c934e3114950c5cf1e4" }
+reqwest-tracing = { git = "https://github.com/TrueLayer/reqwest-middleware", rev = "75197ef573cc5f9aec9b0c934e3114950c5cf1e4", features = ["opentelemetry_0_33"] }
 
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
@@ -77,5 +77,5 @@ tower-http = { version = "0.6.6", features = ["trace"] }
 
 tracing = { version = "0.1.44" }
 tracing-appender = { version = "0.2.4" }
-tracing-opentelemetry = { version = "0.33.0" }
+tracing-opentelemetry = { version = "0.34" }
 tracing-subscriber = { version = "0.3", features = ["registry", "env-filter"] }

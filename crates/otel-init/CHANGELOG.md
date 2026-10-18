@@ -23,6 +23,13 @@ All notable changes to this project will be documented in this file.
 - With no valid protocol environment setting, the enabled features now select `http/json` instead of `grpc`. Set `OTEL_EXPORTER_OTLP_PROTOCOL=grpc` explicitly to retain gRPC.
 - Protocol values now follow native parsing: `grpc`, `http/protobuf`, and `http/json`. The `http/proto` alias, case normalization, and whitespace trimming are no longer supported; invalid values fall through to the next configuration source.
 
+## [0.34.0]
+
+### Breaking Changes
+
+- Upgrade OpenTelemetry dependencies to `0.33` and `tracing-opentelemetry` to `0.34`. Downstream applications exposing or passing OpenTelemetry types must use matching versions.
+- Replace the removed OTLP `tls` feature alias with `tls-ring`. OTLP 0.33 enables exporter retries by default and changes endpoint validation; review exporter failure and shutdown behavior when upgrading.
+
 ## [0.33.1]
 
 ### Added
