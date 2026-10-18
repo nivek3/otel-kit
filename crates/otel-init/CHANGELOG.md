@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.34.0]
+
 ### Breaking Changes
 
 - Upgrade OpenTelemetry dependencies to `0.33` and `tracing-opentelemetry` to `0.34`. Downstream applications exposing or passing OpenTelemetry types must use matching versions.
