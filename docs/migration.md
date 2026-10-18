@@ -14,10 +14,12 @@ failure and shutdown behavior, and use explicit `http://` or `https://` endpoint
 schemes. Local-only operation without a configured endpoint, signal-specific
 configuration precedence, and the default gRPC protocol remain unchanged.
 
-The microservices example keeps `reqwest-tracing` for client spans and response
-attributes without its OpenTelemetry version feature. A local middleware injects
-the current client span's OpenTelemetry 0.33 context before retry handling, since
-`reqwest-tracing` 0.7 only provides built-in propagation through OpenTelemetry 0.32.
+The microservices example enables `reqwest-tracing`'s `opentelemetry_0_33` feature
+from upstream commit `75197ef573cc5f9aec9b0c934e3114950c5cf1e4`. Its client span
+and context propagation use the same OpenTelemetry generation as the server.
+The three reqwest middleware crates share this Git revision so their internal
+path dependencies resolve to the same source. Switch them back to compatible
+crates.io releases once OpenTelemetry 0.33 support is published.
 
 ## Migrating from 0.33.0
 

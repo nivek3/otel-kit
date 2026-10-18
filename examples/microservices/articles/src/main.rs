@@ -5,7 +5,9 @@ use axum::{
     routing::{get, post},
 };
 use axum_otel::{AxumOtelOnFailure, AxumOtelOnResponse, AxumOtelSpanCreator, Level};
-use reqwest_middleware::ClientWithMiddleware;
+use reqwest_middleware::{ClientBuilder, ClientWithMiddleware};
+use reqwest_retry::{RetryTransientMiddleware, policies::ExponentialBackoff};
+use reqwest_tracing::TracingMiddleware;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tokio::net::TcpListener;
@@ -13,8 +15,6 @@ use tower::ServiceBuilder;
 use tower_http::request_id::{MakeRequestUuid, PropagateRequestIdLayer, SetRequestIdLayer};
 use tower_http::trace::TraceLayer;
 use tracing_otel::Logger;
-
-mod http_client;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 struct Article {
@@ -118,7 +118,13 @@ async fn main() -> Result<()> {
     let logger = Logger::from_env(Some("LOG"))?;
     let _guard = logger.init()?;
 
-    let client = http_client::build_http_client(reqwest::Client::new());
+    let retry_policy = ExponentialBackoff::builder().build_with_max_retries(3);
+    let client: ClientWithMiddleware = ClientBuilder::new(reqwest::Client::new())
+        // Trace HTTP requests. See the tracing crate to make use of these traces.
+        .with(TracingMiddleware::default())
+        // Retry failed requests.
+        .with(RetryTransientMiddleware::new_with_policy(retry_policy))
+        .build();
 
     let state = AppState {
         articles: Arc::new(tokio::sync::RwLock::new(Vec::new())),

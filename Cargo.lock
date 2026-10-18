@@ -1435,8 +1435,7 @@ dependencies = [
 [[package]]
 name = "reqwest-middleware"
 version = "0.5.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "07bc3f1384cffa4f274dad2d4ddd73aed32fed8f786d96c6be8aa4e5fd3c3b58"
+source = "git+https://github.com/TrueLayer/reqwest-middleware?rev=75197ef573cc5f9aec9b0c934e3114950c5cf1e4#75197ef573cc5f9aec9b0c934e3114950c5cf1e4"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1449,8 +1448,7 @@ dependencies = [
 [[package]]
 name = "reqwest-retry"
 version = "0.9.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fe2412db2af7d2268e7a5406be0431f37d9eb67ff390f35b395716f5f06c2eaa"
+source = "git+https://github.com/TrueLayer/reqwest-middleware?rev=75197ef573cc5f9aec9b0c934e3114950c5cf1e4#75197ef573cc5f9aec9b0c934e3114950c5cf1e4"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1470,17 +1468,18 @@ dependencies = [
 [[package]]
 name = "reqwest-tracing"
 version = "0.7.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b5e5af0cd6fc3d3c8f703d597af70b6e4e62432c63157b49419fa1ffaf481702"
+source = "git+https://github.com/TrueLayer/reqwest-middleware?rev=75197ef573cc5f9aec9b0c934e3114950c5cf1e4#75197ef573cc5f9aec9b0c934e3114950c5cf1e4"
 dependencies = [
  "anyhow",
  "async-trait",
  "getrandom 0.2.16",
  "http",
  "matchit",
+ "opentelemetry",
  "reqwest",
  "reqwest-middleware",
  "tracing",
+ "tracing-opentelemetry",
 ]
 
 [[package]]
