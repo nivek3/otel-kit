@@ -1,4 +1,25 @@
-# Migrating from 0.33.0
+# Migration guide
+
+## OpenTelemetry 0.33
+
+The next release uses OpenTelemetry `0.33` and `tracing-opentelemetry` `0.34`.
+Align direct dependencies on the API, SDK, HTTP helpers, and exporters with
+these versions when passing OpenTelemetry types to this library. Dependency
+requirements allow compatible patch releases; applications control resolution
+through their own `Cargo.lock`.
+
+The OTLP `tls` feature alias has been replaced with `tls-ring`. OTLP 0.33 enables
+exporter retries by default and tightens endpoint validation. Check export
+failure and shutdown behavior, and use explicit `http://` or `https://` endpoint
+schemes. Local-only operation without a configured endpoint, signal-specific
+configuration precedence, and the default gRPC protocol remain unchanged.
+
+The microservices example keeps `reqwest-tracing` for client spans and response
+attributes without its OpenTelemetry version feature. A local middleware injects
+the current client span's OpenTelemetry 0.33 context before retry handling, since
+`reqwest-tracing` 0.7 only provides built-in propagation through OpenTelemetry 0.32.
+
+## Migrating from 0.33.0
 
 Version `0.33.1` introduced new crates.io package names. Cargo package names do
 not migrate automatically.

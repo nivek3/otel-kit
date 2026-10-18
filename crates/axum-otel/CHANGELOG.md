@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Breaking Changes
+
+- Upgrade HTTP tracing to OpenTelemetry `0.33` and `tracing-opentelemetry` `0.34`. Applications that integrate OpenTelemetry directly must use compatible versions.
+
 ## [0.33.1](https://github.com/nivek-ph/otel-kit/compare/axum-otel-v0.33.0...axum-otel-v0.33.1)
 
 ### Changed

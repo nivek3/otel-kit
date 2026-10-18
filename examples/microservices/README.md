@@ -11,6 +11,12 @@ This project consists of three services:
 
 The services communicate via HTTP calls and use OpenTelemetry for distributed tracing. All services are containerized and can be run using Docker Compose.
 
+The articles HTTP client uses `reqwest-tracing` to create client spans and record
+response attributes. Its local context propagation middleware uses OpenTelemetry
+0.33 to inject `traceparent` and `tracestate` after the client span is entered and
+before retries. The `reqwest-tracing` OpenTelemetry version features are disabled
+because version 0.7 only supports built-in propagation through OpenTelemetry 0.32.
+
 ## Quick Start
 
 ### Option 1: Using Docker Compose (Recommended)
