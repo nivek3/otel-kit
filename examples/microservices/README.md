@@ -188,7 +188,7 @@ To complete the observability stack, you need to run:
 #### Loki + Tempo Stack
 ```bash
 # Clone and setup dockotlp project
-git clone https://github.com/nivek-ph/dockotlp
+git clone https://github.com/nivek3/dockotlp
 cd dockotlp
 
 # Start Loki + Tempo services

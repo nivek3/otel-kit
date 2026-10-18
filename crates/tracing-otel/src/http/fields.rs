@@ -1,11 +1,11 @@
 //! HTTP request field extraction utilities.
 
 use http::{HeaderName, Request};
+pub use http::header::FORWARDED;
 
 pub const X_REQUEST_ID: HeaderName = HeaderName::from_static("x-request-id");
 pub const REQUEST_ID: HeaderName = HeaderName::from_static("request-id");
 pub const X_FORWARDED_PROTO: HeaderName = HeaderName::from_static("x-forwarded-proto");
-pub const FORWARDED: HeaderName = HeaderName::from_static("forwarded");
 
 /// Extract the http method from the request
 pub fn extract_http_method<T>(request: &Request<T>) -> &str {

@@ -67,7 +67,7 @@
 //!
 //! `http.response.status_code` is recorded as an **integer** when the response is sent ([`AxumOtelOnResponse`]).
 //!
-//! See the [examples](https://github.com/nivek-ph/otel-kit/tree/main/examples) directory for complete examples.
+//! See the [examples](https://github.com/nivek3/otel-kit/tree/main/examples) directory for complete examples.
 //!
 mod make_span;
 mod on_failure;

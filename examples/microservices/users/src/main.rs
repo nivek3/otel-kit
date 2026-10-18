@@ -12,7 +12,7 @@ use tower::ServiceBuilder;
 use tower_http::request_id::{MakeRequestUuid, PropagateRequestIdLayer, SetRequestIdLayer};
 use tower_http::trace::TraceLayer;
 use tracing::Level;
-use tracing_otel::Logger;
+use tracing_otel::{FmtSpan, Logger};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 struct User {
@@ -74,8 +74,8 @@ async fn create_user(State(state): State<AppState>, Json(payload): Json<CreateUs
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    dotenvy::dotenv().ok();
-    let mut logger = Logger::from_env(Some("LOG"))?;
+    dotenv::dotenv().ok();
+    let mut logger = Logger::from_env(Some("LOG"))?.with_span_events(FmtSpan::NONE);
     logger = logger.with_ansi(true);
     let _guard = logger.init()?;
 

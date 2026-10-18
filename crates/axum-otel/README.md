@@ -17,12 +17,13 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-axum-otel = "0.29.0"
+axum-otel = "0.33"
 axum = { version = "0.8", features = ["macros"] }
-tower-http = { version = "0.6.5", features = ["trace"] }
-opentelemetry = { version = "0.29.0", features = ["metrics"] }
-opentelemetry_sdk = { version = "0.29.0", features = ["rt-tokio"] }
-opentelemetry-otlp = { version = "0.29.0", features = ["metrics", "grpc-tonic"] }
+tower-http = { version = "0.6", features = ["trace"] }
+tracing-otel = { version = "0.33", features = ["logger"] }
+tracing = "0.1"
+tokio = { version = "1", features = ["full"] }
+anyhow = "1"
 ```
 
 ## Quick Start
@@ -33,30 +34,18 @@ use axum::{
     Router,
 };
 use axum_otel::{AxumOtelOnFailure, AxumOtelOnResponse, AxumOtelSpanCreator};
-use opentelemetry::sdk::trace::Config;
-use opentelemetry_otlp::{WithExportConfig, Protocol};
 use std::net::SocketAddr;
 use tower_http::trace::TraceLayer;
 use tracing::Level;
+use tracing_otel::Logger;
 
 async fn handler() -> &'static str {
     "Hello, world!"
 }
 
 #[tokio::main]
-async fn main() {
-    // Initialize OpenTelemetry
-    let tracer = opentelemetry_otlp::new_pipeline()
-        .tracing()
-        .with_exporter(
-            opentelemetry_otlp::new_exporter()
-                .tonic()
-                .with_endpoint("http://localhost:4317")
-                .with_protocol(Protocol::Grpc)
-        )
-        .with_trace_config(Config::default())
-        .install_batch(opentelemetry::runtime::Tokio)
-        .expect("Failed to initialize OpenTelemetry");
+async fn main() -> anyhow::Result<()> {
+    let _guard = Logger::new("my-service").init()?;
 
     // Build our application with a route
     let app = Router::new()
@@ -71,18 +60,20 @@ async fn main() {
     // Run it
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
     tracing::debug!("listening on {}", addr);
-    axum::Server::bind(&addr)
-        .serve(app.into_make_service())
-        .await
-        .unwrap();
+    let listener = tokio::net::TcpListener::bind(addr).await?;
+    axum::serve(listener, app.into_make_service()).await?;
+    Ok(())
 }
 ```
 
+To enable OTLP export, set `OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317`
+and `OTEL_EXPORTER_OTLP_PROTOCOL=grpc` before starting the application.
+
 ## Examples
 
-Check out the [examples](https://github.com/nivek-ph/otel-kit/tree/main/examples) directory for more usage examples:
+Check out the [examples](https://github.com/nivek3/otel-kit/tree/main/examples) directory for more usage examples:
 
-- [Basic OpenTelemetry integration](https://github.com/nivek-ph/otel-kit/tree/main/examples/otel)
+- [Basic OpenTelemetry integration](https://github.com/nivek3/otel-kit/tree/main/examples/otel)
 
 ## Documentation
 
@@ -99,4 +90,4 @@ This project is licensed under either of
  * Apache License, Version 2.0 ([LICENSE-APACHE](LICENSE-APACHE) or http://www.apache.org/licenses/LICENSE-2.0)
  * MIT license ([LICENSE-MIT](LICENSE-MIT) or http://opensource.org/licenses/MIT)
 
-at your option. 
+at your option.

@@ -17,7 +17,6 @@ pub fn init_tracing_from_logger(logger: Logger) -> Result<LoggerGuard> {
     let otel_guard = setup_tracing(
         &logger.service_name,
         &logger.attributes,
-        logger.sample_ratio,
         logger.metrics_interval_secs,
         logger.level,
         layers,

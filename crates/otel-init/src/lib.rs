@@ -34,8 +34,8 @@
 //!     );
 //!
 //!     // Initialize providers
-//!     let tracer_provider = init_tracer_provider(&resource, 1.0)?;
-//!     let meter_provider = init_meter_provider(&resource, 30)?;
+//!     let tracer_provider = init_tracer_provider(&resource)?;
+//!     let meter_provider = init_meter_provider(&resource)?;
 //!     let logger_provider = init_logger_provider(&resource)?;
 //!
 //!     // initialize tracing subscriber with otel layers
@@ -71,6 +71,3 @@ pub use subscriber::{BoxLayer, init_env_filter, init_tracing_subscriber};
 pub use opentelemetry;
 pub use opentelemetry_sdk;
 pub use tracing_opentelemetry;
-
-// Macros module exports
-pub mod macros;

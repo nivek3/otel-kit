@@ -1,10 +1,16 @@
-use opentelemetry::KeyValue;
-use opentelemetry_sdk::Resource;
+use opentelemetry::{Key, KeyValue};
+use opentelemetry_sdk::{
+    Resource,
+    resource::{EnvResourceDetector, ResourceDetector, SdkProvidedResourceDetector},
+};
 
 /// Creates a resource with the given service name and attributes.
 ///
 /// This function builds an OpenTelemetry resource that identifies your service
 /// and includes any additional attributes you want to track.
+/// A non-empty `OTEL_SERVICE_NAME` takes priority over `service.name` in
+/// `OTEL_RESOURCE_ATTRIBUTES`, then explicit attributes, then `service_name`.
+/// Other explicit attributes retain priority over environment attributes.
 ///
 /// # Arguments
 ///
@@ -23,10 +29,18 @@ use opentelemetry_sdk::Resource;
 /// );
 /// ```
 pub fn get_resource(service_name: &str, attributes: &[KeyValue]) -> Resource {
-    Resource::builder()
+    let mut builder = Resource::builder()
         .with_service_name(service_name.to_string())
-        .with_attributes(attributes.to_vec())
-        .build()
+        .with_attributes(attributes.iter().cloned());
+    if std::env::var("OTEL_SERVICE_NAME").is_ok_and(|name| !name.is_empty())
+        || EnvResourceDetector::new()
+            .detect()
+            .get(&Key::new("service.name"))
+            .is_some()
+    {
+        builder = builder.with_detector(Box::new(SdkProvidedResourceDetector));
+    }
+    builder.build()
 }
 
 #[cfg(test)]

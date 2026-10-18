@@ -62,6 +62,7 @@ pub enum LogRollingRotation {
 #[derive(Debug, Clone, serde::Deserialize)]
 pub struct Logger {
     /// The name of the service being traced.
+    /// Native OpenTelemetry service-name environment settings take priority.
     #[serde(default = "default::service_name")]
     pub service_name: String,
 
@@ -89,14 +90,6 @@ pub struct Logger {
         default = "default::log_level"
     )]
     pub level: Level,
-
-    /// The ratio of traces to sample (0.0 to 1.0).
-    #[serde(default = "default::sample_ratio")]
-    pub sample_ratio: f64,
-
-    /// The interval in seconds between metrics collection.
-    #[serde(default = "default::metrics_interval_secs")]
-    pub metrics_interval_secs: u64,
 
     /// Additional attributes to add to the resource.
     #[serde(default, deserialize_with = "deserialize_attributes")]
@@ -219,8 +212,6 @@ impl Default for Logger {
             span_events: default::span_events(),
             ansi: true,
             level: default::log_level(),
-            sample_ratio: default::sample_ratio(),
-            metrics_interval_secs: default::metrics_interval_secs(),
             attributes: vec![],
             console_enabled: default::console_enabled(),
             file_appender: None,
@@ -239,6 +230,7 @@ impl Logger {
     }
 
     /// Set the service name.
+    /// Native OpenTelemetry service-name environment settings take priority.
     pub fn with_service_name(mut self, service_name: impl Into<String>) -> Self {
         self.service_name = service_name.into();
         self
@@ -265,18 +257,6 @@ impl Logger {
     /// Set the minimum log level to record.
     pub fn with_level(mut self, level: Level) -> Self {
         self.level = level;
-        self
-    }
-
-    /// Set the ratio of traces to sample (0.0 to 1.0).
-    pub fn with_sample_ratio(mut self, ratio: f64) -> Self {
-        self.sample_ratio = ratio;
-        self
-    }
-
-    /// Set the interval in seconds between metrics collection.
-    pub fn with_metrics_interval_secs(mut self, secs: u64) -> Self {
-        self.metrics_interval_secs = secs;
         self
     }
 

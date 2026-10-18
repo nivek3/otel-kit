@@ -9,21 +9,17 @@ use crate::{
 };
 use anyhow::{Context, Result};
 use otel_init::BoxLayer;
+pub use otel_init::init_env_filter;
 use tracing::Level;
 use tracing_appender::non_blocking::WorkerGuard;
 use tracing_subscriber::{
-    EnvFilter, Layer, Registry,
+    Layer, Registry,
     fmt::{self, MakeWriter, format::FmtSpan},
 };
 
 pub(crate) struct OutputLayers {
     pub(crate) layers: Vec<BoxLayer>,
     pub(crate) worker_guard: Option<WorkerGuard>,
-}
-
-/// Creates an environment filter for tracing based on the given level.
-pub fn init_env_filter(level: &Level) -> EnvFilter {
-    EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new(level.to_string()))
 }
 
 /// Apply the specified format to a tracing layer
@@ -38,10 +34,7 @@ where
     match format {
         LogFormat::Compact => layer.compact().boxed(),
         LogFormat::Pretty => layer.pretty().boxed(),
-        LogFormat::Json => layer
-            .event_format(fmt::format().json().flatten_event(true))
-            .fmt_fields(fmt::format::JsonFields::new())
-            .boxed(),
+        LogFormat::Json => layer.json().flatten_event(true).boxed(),
     }
 }
 

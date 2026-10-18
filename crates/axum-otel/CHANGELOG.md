@@ -4,13 +4,17 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-## [0.33.1](https://github.com/nivek-ph/otel-kit/compare/axum-otel-v0.33.0...axum-otel-v0.33.1)
+### Fixed
+
+- Update the quick start to the current `Logger` bootstrap and Axum 0.8 APIs, removing obsolete OTLP pipeline calls.
+
+## [0.33.1](https://github.com/nivek3/otel-kit/compare/axum-otel-v0.33.0...axum-otel-v0.33.1)
 
 ### Changed
 
 - Replace the internal `tracing-otel-extra` dependency with its successor, `tracing-otel`. Applications that also depend on the shared tracing crate directly must replace `tracing-otel-extra = "0.33.0"` with `tracing-otel = "0.33.1"` and update Rust imports from `tracing_otel_extra` to `tracing_otel`.
 
-## [0.33.0](https://github.com/nivek-ph/otel-kit/compare/axum-otel-v0.32.1...axum-otel-v0.33.0)
+## [0.33.0](https://github.com/nivek3/otel-kit/compare/axum-otel-v0.32.1...axum-otel-v0.33.0)
 
 ### ⚠️ Breaking Changes
 
@@ -20,14 +24,14 @@ All notable changes to this project will be documented in this file.
 
 - Delegate shared HTTP server span creation to `tracing-otel-extra`, leaving `AxumOtelSpanCreator` responsible only for Axum-specific enrichment.
 
-## [0.31.7](https://github.com/nivek-ph/otel-kit/compare/axum-otel-v0.31.6...axum-otel-v0.31.7)
+## [0.31.7](https://github.com/nivek3/otel-kit/compare/axum-otel-v0.31.6...axum-otel-v0.31.7)
 
 
 
 
 ### Fixed
 
-- Align HTTP spans with latest OpenTelemetry semantics ([#19](https://github.com/nivek-ph/otel-kit/pull/19)) - ([c5acf3f](https://github.com/nivek-ph/otel-kit/commit/c5acf3f3c0ad4584431733264acef245506a51bc))
+- Align HTTP spans with latest OpenTelemetry semantics ([#19](https://github.com/nivek3/otel-kit/pull/19)) - ([c5acf3f](https://github.com/nivek3/otel-kit/commit/c5acf3f3c0ad4584431733264acef245506a51bc))
 
 
 ### ⚠️ Breaking Changes
@@ -39,12 +43,12 @@ All notable changes to this project will be documented in this file.
 
 - Expand crate-level documentation with attribute migration and links to the OpenTelemetry HTTP spec.
 
-## [0.31.5](https://github.com/nivek-ph/otel-kit/compare/axum-otel-v0.31.4...axum-otel-v0.31.5)
+## [0.31.5](https://github.com/nivek3/otel-kit/compare/axum-otel-v0.31.4...axum-otel-v0.31.5)
 
 ### 🚜 Refactor
 
-- Reorganize imports and simplify shutdown logic in tracing modules - ([0f95108](https://github.com/nivek-ph/otel-kit/commit/0f951082ae571380fef1c626855271d1ab74794a))
+- Reorganize imports and simplify shutdown logic in tracing modules - ([0f95108](https://github.com/nivek3/otel-kit/commit/0f951082ae571380fef1c626855271d1ab74794a))
 
 ### ⚙️ Miscellaneous Tasks
 
-- Update workspace dependencies and enhance CI configuration - ([244742d](https://github.com/nivek-ph/otel-kit/commit/244742d220816d3750abfd67175be04bacd057da))
+- Update workspace dependencies and enhance CI configuration - ([244742d](https://github.com/nivek3/otel-kit/commit/244742d220816d3750abfd67175be04bacd057da))

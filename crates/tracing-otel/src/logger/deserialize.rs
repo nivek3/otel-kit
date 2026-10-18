@@ -1,7 +1,7 @@
 //! Serde deserialization helpers and default values for Logger configuration.
 
 use opentelemetry::KeyValue;
-use serde::Deserialize;
+use serde::{Deserialize, de::IntoDeserializer};
 use tracing::Level;
 use tracing_subscriber::fmt::format::FmtSpan;
 
@@ -13,14 +13,7 @@ where
     D: serde::Deserializer<'de>,
 {
     let s = String::deserialize(deserializer)?;
-    match s.to_lowercase().as_str().trim() {
-        "compact" => Ok(LogFormat::Compact),
-        "pretty" => Ok(LogFormat::Pretty),
-        "json" => Ok(LogFormat::Json),
-        _ => Err(serde::de::Error::custom(format!(
-            "Invalid log format: '{s}'"
-        ))),
-    }
+    LogFormat::deserialize(s.to_lowercase().trim().into_deserializer())
 }
 
 /// Deserialize an optional LogFormat field
@@ -34,14 +27,7 @@ where
     if s.trim().is_empty() {
         return Ok(None);
     }
-    match s.to_lowercase().as_str().trim() {
-        "compact" => Ok(Some(LogFormat::Compact)),
-        "pretty" => Ok(Some(LogFormat::Pretty)),
-        "json" => Ok(Some(LogFormat::Json)),
-        _ => Err(serde::de::Error::custom(format!(
-            "Invalid log format: '{s}'"
-        ))),
-    }
+    deserialize_log_format(s.into_deserializer()).map(Some)
 }
 
 /// Deserialize a required Level field
@@ -166,14 +152,6 @@ pub mod default {
         FmtSpan::NEW | FmtSpan::CLOSE
     }
 
-    pub fn sample_ratio() -> f64 {
-        1.0
-    }
-
-    pub fn metrics_interval_secs() -> u64 {
-        30
-    }
-
     pub fn rotation() -> LogRollingRotation {
         LogRollingRotation::Hourly
     }
@@ -202,6 +180,36 @@ mod tests {
         assert_eq!(
             deserialize_log_format::<StrDeserializer>("json".into_deserializer()).unwrap(),
             LogFormat::Json
+        );
+    }
+
+    #[test]
+    fn test_log_format_compatibility() {
+        for (input, expected) in [
+            (" COMPACT ", LogFormat::Compact),
+            ("Pretty", LogFormat::Pretty),
+            ("\tJSON\n", LogFormat::Json),
+        ] {
+            assert_eq!(
+                deserialize_log_format::<StrDeserializer>(input.into_deserializer()).unwrap(),
+                expected,
+            );
+            assert_eq!(
+                deserialize_log_format_optional::<StrDeserializer>(input.into_deserializer())
+                    .unwrap(),
+                Some(expected),
+            );
+        }
+        assert_eq!(
+            deserialize_log_format_optional::<StrDeserializer>("  ".into_deserializer()).unwrap(),
+            None,
+        );
+        for input in ["", "invalid"] {
+            assert!(deserialize_log_format::<StrDeserializer>(input.into_deserializer()).is_err());
+        }
+        assert!(
+            deserialize_log_format_optional::<StrDeserializer>("invalid".into_deserializer())
+                .is_err(),
         );
     }
 

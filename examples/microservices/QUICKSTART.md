@@ -13,7 +13,7 @@ First, you need to start the observability backend (Loki + Tempo + Grafana):
 
 ```bash
 # Clone the dockotlp project
-git clone https://github.com/nivek-ph/dockotlp
+git clone https://github.com/nivek3/dockotlp
 cd dockotlp
 
 # Start the observability stack

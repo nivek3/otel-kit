@@ -35,9 +35,10 @@ Add the dependency to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-tracing-otel = "0.33"
+tracing-otel = { version = "0.33", features = ["logger"] }
 tracing = "0.1"
 tokio = { version = "1.0", features = ["full"] }
+anyhow = "1"
 ```
 
 ### Basic Usage
@@ -63,7 +64,7 @@ async fn main() -> anyhow::Result<()> {
 
 ```rust
 use tracing_otel::{Logger, LogFormat};
-use opentelemetry::KeyValue;
+use tracing_otel::otel::opentelemetry::KeyValue;
 use tracing::Level;
 
 #[tokio::main]
@@ -72,9 +73,6 @@ async fn main() -> anyhow::Result<()> {
         .with_format(LogFormat::Json)           // Use JSON format
         .with_level(Level::DEBUG)               // Set log level
         .with_ansi(false)                       // Disable ANSI colors
-        .with_sample_ratio(0.1)                 // 10% sampling rate
-        .with_metrics_interval(60)              // 60-second metrics collection interval
-        .with_stdout_metrics(false)             // Disable console metrics output
         .with_attributes(vec![                  // Add custom attributes
             KeyValue::new("environment", "production"),
             KeyValue::new("version", "1.2.3"),
@@ -115,8 +113,6 @@ async fn main() -> anyhow::Result<()> {
 | `format`                | `LogFormat`     | `Compact`  | Log output format: `Compact`, `Pretty`, `Json`         |
 | `ansi`                  | `bool`          | `true`     | Whether to enable ANSI color output                    |
 | `level`                 | `Level`         | `INFO`     | Log level filtering                                    |
-| `sample_ratio`          | `f64`           | `1.0`      | Trace sampling ratio (0.0-1.0)                         |
-| `metrics_interval_secs` | `u64`           | `30`       | Metrics collection and export interval (seconds)       |
 | `attributes`            | `Vec<KeyValue>` | `[]`       | Custom OpenTelemetry attributes                        |
 | `otel_logs_enabled`     | `bool`          | `false`    | Whether to enable OpenTelemetry logs export            |
 
@@ -141,14 +137,20 @@ export OTEL_EXPORTER_OTLP_PROTOCOL=grpc
 # export OTEL_EXPORTER_OTLP_TRACES_PROTOCOL=http/protobuf
 # export OTEL_EXPORTER_OTLP_METRICS_PROTOCOL=http/json
 #
-# Default behavior: when no protocol env vars are set, both traces and metrics use grpc.
+# Without protocol env vars, the native SDK feature default is http/json.
+# Set grpc explicitly when using a gRPC receiver (typically port 4317).
 
 # Log level (takes precedence over code configuration)
 export RUST_LOG=debug
 
 # Resource attributes
-export OTEL_RESOURCE_ATTRIBUTES=service.name=my-service,service.version=1.0.0
+export OTEL_RESOURCE_ATTRIBUTES=service.version=1.0.0
 ```
+
+`LOG_*` settings require the `env` feature and `Logger::from_env(None)`; they are
+library-specific settings, not OpenTelemetry SDK variables. See
+[environment variable precedence](../../docs/otlp.md#environment-variable-precedence)
+for native `OTEL_*` priority, code/`LOG_*` fallbacks, and `.env` loading.
 
 ## Integration with Axum
 
@@ -211,7 +213,7 @@ guard.shutdown()?; // Manual cleanup
 
 ## Requirements
 
-- **Rust Version**: 1.70+
+- **Rust Version**: 1.96.0+
 - **Tokio Runtime**: Requires tokio async runtime
 - **OTLP Receiver**: Need to configure an OTLP-compatible receiver (such as Jaeger, OTEL Collector)
 
@@ -223,6 +225,7 @@ guard.shutdown()?; // Manual cleanup
    ```bash
    # Check endpoint configuration
    export OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317
+   export OTEL_EXPORTER_OTLP_PROTOCOL=grpc
    
    # Quickly start Jaeger using Docker
    docker run -d --name jaeger \
@@ -241,11 +244,9 @@ guard.shutdown()?; // Manual cleanup
    ```
 
 3. **Metrics collection issues**
-   ```rust
-   // Adjust metrics collection interval
-   Logger::new("service")
-       .with_metrics_interval(10) // Collect every 10 seconds
-       .with_stdout_metrics(true) // Enable console output for debugging
+   ```bash
+   # Collect every 10 seconds; the SDK uses milliseconds.
+   export OTEL_METRIC_EXPORT_INTERVAL=10000
    ```
 
 ## License

@@ -26,7 +26,6 @@
 //!     let _guard = Logger::new("my-service")
 //!         .with_format(LogFormat::Json)
 //!         .with_ansi(false)
-//!         .with_sample_ratio(0.1)
 //!         .with_attributes(vec![
 //!             KeyValue::new("environment", "production"),
 //!             KeyValue::new("version", "1.0.0"),
@@ -49,7 +48,8 @@
 //!     // Configure through environment variables:
 //!     // LOG_SERVICE_NAME=my-service
 //!     // LOG_FORMAT=json
-//!     // LOG_SAMPLE_RATIO=0.1
+//!     // OTEL_TRACES_SAMPLER=parentbased_traceidratio
+//!     // OTEL_TRACES_SAMPLER_ARG=0.1
 //!     let _guard = init_logging_from_env(None)
 //!         .expect("Failed to initialize tracing from environment");
 //!

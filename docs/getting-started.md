@@ -54,7 +54,7 @@ let _guard = Logger::from_env(Some("LOG"))?.init()?;
 ```
 
 With the `LOG` prefix, fields map to names such as `LOG_SERVICE_NAME`,
-`LOG_FORMAT`, and `LOG_SAMPLE_RATIO`. See [Logger configuration](logger.md) for
+`LOG_FORMAT`, and `LOG_CONSOLE_ENABLED`. See [Logger configuration](logger.md) for
 the complete mapping used by the repository.
 
 ## Axum middleware
