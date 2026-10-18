@@ -11,7 +11,7 @@ resolver = "2"
 
 [workspace.package]
 rust-version = "1.96.0"
-version = "0.33.2"
+version = "0.34.0"
 authors = ["nivek <h49987180@gmail.com>"]
 edition = "2024"
 license = "MIT/Apache-2.0"
@@ -33,9 +33,9 @@ categories = ["asynchronous"]
 
 [workspace.dependencies]
 # workspace crates
-axum-otel = { path = "crates/axum-otel", version = "0.33.2" }
-otel-init = { path = "crates/otel-init", version = "0.33.2" }
-tracing-otel = { path = "crates/tracing-otel", version = "0.33.2" }
+axum-otel = { path = "crates/axum-otel", version = "0.34.0" }
+otel-init = { path = "crates/otel-init", version = "0.34.0" }
+tracing-otel = { path = "crates/tracing-otel", version = "0.34.0" }
 
 # external crates
 anyhow = "1.0"
