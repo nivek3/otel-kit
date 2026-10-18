@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Breaking Changes
+
+- Upgrade OpenTelemetry dependencies to `0.33` and `tracing-opentelemetry` to `0.34`. Downstream applications exposing or passing OpenTelemetry types must use matching versions.
+- Replace the removed OTLP `tls` feature alias with `tls-ring`. OTLP 0.33 enables exporter retries by default and changes endpoint validation; review exporter failure and shutdown behavior when upgrading.
+
 ## [0.33.1]
 
 ### Added
