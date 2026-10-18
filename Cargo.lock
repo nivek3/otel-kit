@@ -19,7 +19,7 @@ checksum = "a23eb6b1614318a8071c9b2521f36b424b2c83db5eb3a0fead4a6c0809af6e61"
 
 [[package]]
 name = "articles-service"
-version = "0.33.2"
+version = "0.34.0"
 dependencies = [
  "anyhow",
  "axum",
@@ -143,7 +143,7 @@ dependencies = [
 
 [[package]]
 name = "axum-otel"
-version = "0.33.2"
+version = "0.34.0"
 dependencies = [
  "axum",
  "http-body-util",
@@ -160,7 +160,7 @@ dependencies = [
 
 [[package]]
 name = "axum-otel-demo"
-version = "0.33.2"
+version = "0.34.0"
 dependencies = [
  "anyhow",
  "axum",
@@ -1089,7 +1089,7 @@ dependencies = [
 
 [[package]]
 name = "otel-init"
-version = "0.33.2"
+version = "0.34.0"
 dependencies = [
  "anyhow",
  "opentelemetry",
@@ -2217,7 +2217,7 @@ dependencies = [
 
 [[package]]
 name = "tracing-otel"
-version = "0.33.2"
+version = "0.34.0"
 dependencies = [
  "anyhow",
  "config",
@@ -2306,7 +2306,7 @@ dependencies = [
 
 [[package]]
 name = "users-service"
-version = "0.33.2"
+version = "0.34.0"
 dependencies = [
  "anyhow",
  "axum",

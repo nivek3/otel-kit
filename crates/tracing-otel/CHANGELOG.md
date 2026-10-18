@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.34.0]
+
 ### Breaking Changes
 
 - Upgrade HTTP propagation, trace context utilities, and Logger integration to OpenTelemetry `0.33` and `tracing-opentelemetry` `0.34`. Downstream applications must align their OpenTelemetry types and tracing bridge versions.
