@@ -9,7 +9,7 @@ use opentelemetry::{
 use opentelemetry_http::HeaderExtractor;
 use opentelemetry_sdk::{
     propagation::TraceContextPropagator,
-    trace::{InMemorySpanExporter, SdkTracerProvider},
+    trace::{InMemorySpanExporter, Sampler, SdkTracerProvider},
 };
 use reqwest::Client;
 use reqwest_middleware::{ClientBuilder, ClientWithMiddleware};
@@ -72,9 +72,19 @@ async fn propagation_is_omitted_without_context_or_when_disabled() {
 
 #[tokio::test(flavor = "current_thread")]
 async fn client_context_is_propagated_across_retries() {
+    assert_client_context_is_propagated_across_retries(true).await;
+}
+
+#[tokio::test(flavor = "current_thread")]
+async fn unsampled_client_context_is_propagated_across_retries() {
+    assert_client_context_is_propagated_across_retries(false).await;
+}
+
+async fn assert_client_context_is_propagated_across_retries(sampled: bool) {
     global::set_text_map_propagator(TraceContextPropagator::new());
     let exporter = InMemorySpanExporter::default();
     let provider = SdkTracerProvider::builder()
+        .with_sampler(Sampler::ParentBased(Box::new(Sampler::AlwaysOn)))
         .with_simple_exporter(exporter.clone())
         .build();
     let subscriber = tracing_subscriber::registry()
@@ -101,11 +111,12 @@ async fn client_context_is_propagated_across_retries() {
     let address = listener.local_addr().unwrap();
     let server = tokio::spawn(async move { axum::serve(listener, app).await.unwrap() });
 
-    async {
+    let parent_span_context = async {
+        let flags = if sampled { "01" } else { "00" };
         let parent_headers = HeaderMap::from_iter([
             (
                 http::header::HeaderName::from_static("traceparent"),
-                "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01"
+                format!("00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-{flags}")
                     .parse()
                     .unwrap(),
             ),
@@ -119,6 +130,8 @@ async fn client_context_is_propagated_across_retries() {
         });
         let parent = tracing::info_span!("articles-request");
         parent.set_parent(parent_context).unwrap();
+        let parent_span_context = parent.context().span().span_context().clone();
+        assert_eq!(parent_span_context.is_sampled(), sampled);
         let client = build_http_client(Client::builder().no_proxy().build().unwrap());
         let response = client
             .get(format!("http://{address}/users/1"))
@@ -127,6 +140,7 @@ async fn client_context_is_propagated_across_retries() {
             .await
             .unwrap();
         assert_eq!(response.status(), StatusCode::OK);
+        parent_span_context
     }
     .with_subscriber(subscriber)
     .await;
@@ -134,42 +148,58 @@ async fn client_context_is_propagated_across_retries() {
     server.abort();
     provider.force_flush().unwrap();
     let spans = exporter.get_finished_spans().unwrap();
-    let parent = spans.iter().find(|s| s.name == "articles-request").unwrap();
-    let clients: Vec<_> = spans
-        .iter()
-        .filter(|s| s.span_kind == SpanKind::Client)
-        .collect();
-    assert_eq!(clients.len(), 1);
-    let client = clients[0];
-    assert_eq!(client.parent_span_id, parent.span_context.span_id());
     assert_eq!(
-        client.span_context.trace_id(),
-        parent.span_context.trace_id()
-    );
-    assert_eq!(
-        parent.span_context.trace_id().to_string(),
+        parent_span_context.trace_id().to_string(),
         "4bf92f3577b34da6a3ce929d0e0e4736"
     );
-    assert_eq!(parent.parent_span_id.to_string(), "00f067aa0ba902b7");
 
     let received = received.lock().unwrap();
     assert_eq!(received.len(), 2);
+    let first_context = global::get_text_map_propagator(|propagator| {
+        propagator.extract(&HeaderExtractor(&received[0]))
+    });
+    let first_span = first_context.span();
+    let client_context = first_span.span_context();
+    assert_ne!(client_context.span_id(), parent_span_context.span_id());
     for headers in received.iter() {
         let context = global::get_text_map_propagator(|propagator| {
             propagator.extract(&HeaderExtractor(headers))
         });
         let span = context.span();
         let propagated = span.span_context();
-        assert_eq!(propagated.trace_id(), client.span_context.trace_id());
-        assert_eq!(propagated.span_id(), client.span_context.span_id());
-        assert_eq!(propagated.trace_flags(), client.span_context.trace_flags());
+        assert!(propagated.is_valid());
+        assert_eq!(propagated.trace_id(), parent_span_context.trace_id());
+        assert_eq!(propagated.span_id(), client_context.span_id());
+        assert_eq!(propagated.trace_flags(), parent_span_context.trace_flags());
+        assert_eq!(propagated.is_sampled(), sampled);
+        assert_eq!(propagated.trace_state().header(), "vendor=value");
         assert_eq!(headers["tracestate"], "vendor=value");
     }
-    let status = client
-        .attributes
-        .iter()
-        .find(|attribute| attribute.key.as_str() == "http.response.status_code")
-        .map(|attribute| &attribute.value);
-    assert_eq!(status, Some(&opentelemetry::Value::String("200".into())));
+
+    if sampled {
+        let parent = spans.iter().find(|s| s.name == "articles-request").unwrap();
+        assert_eq!(parent.span_context, parent_span_context);
+        assert_eq!(parent.parent_span_id.to_string(), "00f067aa0ba902b7");
+        let clients: Vec<_> = spans
+            .iter()
+            .filter(|s| s.span_kind == SpanKind::Client)
+            .collect();
+        assert_eq!(clients.len(), 1);
+        let client = clients[0];
+        assert_eq!(client.parent_span_id, parent_span_context.span_id());
+        assert_eq!(
+            client.span_context.trace_id(),
+            parent_span_context.trace_id()
+        );
+        assert_eq!(client.span_context.span_id(), client_context.span_id());
+        let status = client
+            .attributes
+            .iter()
+            .find(|attribute| attribute.key.as_str() == "http.response.status_code")
+            .map(|attribute| &attribute.value);
+        assert_eq!(status, Some(&opentelemetry::Value::String("200".into())));
+    } else {
+        assert!(spans.is_empty(), "Unsampled spans should not be exported");
+    }
     provider.shutdown().unwrap();
 }
