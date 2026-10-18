@@ -114,16 +114,14 @@ pub(crate) fn create_output_layers(logger: &Logger) -> Result<OutputLayers> {
 pub fn setup_tracing(
     service_name: &str,
     attributes: &[KeyValue],
-    sample_ratio: f64,
-    metrics_interval_secs: u64,
     level: Level,
     layers: Vec<BoxLayer>,
     otel_logs_enabled: bool,
 ) -> Result<OtelGuard> {
     let env_filter = init_env_filter(&level);
     let resource = get_resource(service_name, attributes);
-    let tracer_provider = init_tracer_provider(&resource, sample_ratio)?;
-    let meter_provider = init_meter_provider(&resource, metrics_interval_secs)?;
+    let tracer_provider = init_tracer_provider(&resource)?;
+    let meter_provider = init_meter_provider(&resource)?;
     let logger_provider = if otel_logs_enabled {
         Some(init_logger_provider(&resource)?)
     } else {
