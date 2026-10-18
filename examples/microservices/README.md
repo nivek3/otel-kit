@@ -144,6 +144,7 @@ Each service uses its own environment file. You need to create these files befor
 ```bash
 cat > articles.env << 'EOF'
 OTEL_EXPORTER_OTLP_ENDPOINT="http://198.18.0.1:4317"
+OTEL_EXPORTER_OTLP_PROTOCOL=grpc
 RUST_LOG=info
 LOG_SERVICE_NAME="articles"
 LOG_FORMAT=compact
@@ -157,6 +158,7 @@ EOF
 ```bash
 cat > users.env << 'EOF'
 OTEL_EXPORTER_OTLP_ENDPOINT="http://198.18.0.1:4317"
+OTEL_EXPORTER_OTLP_PROTOCOL=grpc
 RUST_LOG=info
 LOG_SERVICE_NAME="users"
 LOG_FORMAT=compact
@@ -170,6 +172,7 @@ EOF
 ```bash
 cat > demo.env << 'EOF'
 OTEL_EXPORTER_OTLP_ENDPOINT="http://198.18.0.1:4317"
+OTEL_EXPORTER_OTLP_PROTOCOL=grpc
 RUST_LOG=info
 LOG_SERVICE_NAME="demo"
 LOG_FORMAT=compact
