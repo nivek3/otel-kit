@@ -109,7 +109,7 @@ async fn main() -> anyhow::Result<()> {
 
 | Option                  | Type            | Default    | Description                                            |
 | ----------------------- | --------------- | ---------- | ------------------------------------------------------ |
-| `service_name`          | `String`        | Crate name | Service name for OpenTelemetry resource identification |
+| `service_name`          | `String`        | Crate name | Tracer instrumentation scope name; does not set resource `service.name` |
 | `format`                | `LogFormat`     | `Compact`  | Log output format: `Compact`, `Pretty`, `Json`         |
 | `ansi`                  | `bool`          | `true`     | Whether to enable ANSI color output                    |
 | `level`                 | `Level`         | `INFO`     | Log level filtering                                    |
@@ -144,13 +144,14 @@ export OTEL_EXPORTER_OTLP_PROTOCOL=grpc
 export RUST_LOG=debug
 
 # Resource attributes
+export OTEL_SERVICE_NAME=my-service
 export OTEL_RESOURCE_ATTRIBUTES=service.version=1.0.0
 ```
 
 `LOG_*` settings require the `env` feature and `Logger::from_env(None)`; they are
 library-specific settings, not OpenTelemetry SDK variables. See
 [environment variable precedence](../../docs/otlp.md#environment-variable-precedence)
-for native `OTEL_*` priority, code/`LOG_*` fallbacks, and `.env` loading.
+for SDK resource detection, explicit attribute overrides, and `.env` loading.
 
 ## Integration with Axum
 

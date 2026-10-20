@@ -24,14 +24,11 @@
 //!
 //! #[tokio::main]
 //! async fn main() -> anyhow::Result<()> {
-//!     // Create resource with service name and attributes
-//!     let resource = get_resource(
-//!         "my-service",
-//!         &[
-//!             KeyValue::new("environment", "production"),
-//!             KeyValue::new("version", "1.0.0"),
-//!         ],
-//!     );
+//!     // Create resource using SDK defaults and additional attributes
+//!     let resource = get_resource(&[
+//!         KeyValue::new("environment", "production"),
+//!         KeyValue::new("version", "1.0.0"),
+//!     ]);
 //!
 //!     // Initialize providers
 //!     let tracer_provider = init_tracer_provider(&resource)?;

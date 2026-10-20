@@ -68,6 +68,8 @@ async fn main() -> anyhow::Result<()> {
 
 To enable OTLP export, set `OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317`
 and `OTEL_EXPORTER_OTLP_PROTOCOL=grpc` before starting the application.
+Set `OTEL_SERVICE_NAME=my-service` to name the resource; the `Logger::new(...)`
+argument only names the tracer's instrumentation scope.
 
 ## Examples
 

@@ -8,16 +8,16 @@ All notable changes to this project will be documented in this file.
 
 - Re-export `otel-init::init_env_filter` instead of duplicating `RUST_LOG` parsing; existing public paths and fallback behavior are preserved.
 - Reuse the environment configuration reader for file-appender settings.
-- Native OpenTelemetry service-name settings now take priority over Logger fields and `LOG_*` values at initialization.
 - Use tracing-subscriber's native JSON layer configuration (including disabling ANSI escapes) and Serde's derived log-format parser, preserving case-insensitive values and optional empty values. Invalid formats now use Serde's standard error messages.
 - Re-export the standard `http::header::FORWARDED` constant instead of defining a duplicate.
 
 ### Fixed
 
-- Update README feature requirements and builder examples, and document native environment priority and code configuration fallbacks.
+- Update README feature requirements and builder examples, and document SDK environment configuration and explicit resource attributes.
 
 ### Breaking Changes
 
+- `Logger::service_name`, `with_service_name`, and `LOG_SERVICE_NAME` now only configure the tracer's instrumentation scope. Set resource `service.name` using native SDK environment settings or explicit resource attributes instead; explicit attributes override SDK-detected values.
 - Remove `Logger::sample_ratio`, `with_sample_ratio`, `default::sample_ratio`, and the sample-ratio argument to `setup_tracing`. `LOG_SAMPLE_RATIO` no longer configures sampling. Use `OTEL_TRACES_SAMPLER=parentbased_traceidratio` and `OTEL_TRACES_SAMPLER_ARG` instead; without configuration, the SDK uses `parentbased_always_on`.
 - Remove `Logger::metrics_interval_secs`, `with_metrics_interval_secs`, `default::metrics_interval_secs`, and the interval argument to `setup_tracing`. `LOG_METRICS_INTERVAL_SECS` no longer configures collection. Use `OTEL_METRIC_EXPORT_INTERVAL` in milliseconds; the SDK default is 60 seconds instead of the previous Logger default of 30 seconds.
 

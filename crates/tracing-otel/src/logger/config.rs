@@ -61,8 +61,8 @@ pub enum LogRollingRotation {
 /// Configuration for the OpenTelemetry tracing and logging system.
 #[derive(Debug, Clone, serde::Deserialize)]
 pub struct Logger {
-    /// The name of the service being traced.
-    /// Native OpenTelemetry service-name environment settings take priority.
+    /// The tracer's instrumentation scope name.
+    /// Resource `service.name` uses SDK defaults or explicit resource attributes.
     #[serde(default = "default::service_name")]
     pub service_name: String,
 
@@ -221,7 +221,7 @@ impl Default for Logger {
 }
 
 impl Logger {
-    /// Create a new configuration with the given service name.
+    /// Create a new configuration with the given tracer instrumentation scope name.
     pub fn new(service_name: impl Into<String>) -> Self {
         Self {
             service_name: service_name.into(),
@@ -229,8 +229,8 @@ impl Logger {
         }
     }
 
-    /// Set the service name.
-    /// Native OpenTelemetry service-name environment settings take priority.
+    /// Set the tracer's instrumentation scope name.
+    /// This does not set the resource's `service.name`.
     pub fn with_service_name(mut self, service_name: impl Into<String>) -> Self {
         self.service_name = service_name.into();
         self

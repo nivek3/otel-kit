@@ -34,6 +34,10 @@ Keep the returned `LoggerGuard` alive for the whole application. Dropping it
 shuts down the OpenTelemetry providers and then releases any non-blocking file
 writer guard.
 
+Set `OTEL_SERVICE_NAME=inventory-api` to name the resource. The argument to
+`Logger::new(...)` only names the tracer's instrumentation scope; resource
+attributes otherwise use [SDK defaults](otlp.md#environment-variable-precedence).
+
 ## Environment-based configuration
 
 Enable `env` when configuration should come from environment variables. It

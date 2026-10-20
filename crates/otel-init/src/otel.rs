@@ -79,7 +79,7 @@ fn endpoint_configured(endpoint_env: &str) -> bool {
 ///
 /// #[tokio::main]
 /// async fn main() -> anyhow::Result<()> {
-///     let resource = get_resource("my-service", &[]);
+///     let resource = get_resource(&[]);
 ///     let tracer_provider = init_tracer_provider(&resource)?;
 ///     Ok(())
 /// }
@@ -126,7 +126,7 @@ pub fn init_tracer_provider(resource: &Resource) -> Result<SdkTracerProvider> {
 ///
 /// #[tokio::main]
 /// async fn main() -> anyhow::Result<()> {
-///     let resource = get_resource("my-service", &[]);
+///     let resource = get_resource(&[]);
 ///     let meter_provider = init_meter_provider(&resource)?;
 ///     Ok(())
 /// }
@@ -168,7 +168,7 @@ pub fn init_meter_provider(resource: &Resource) -> Result<SdkMeterProvider> {
 ///
 /// #[tokio::main]
 /// async fn main() -> anyhow::Result<()> {
-///     let resource = get_resource("my-service", &[]);
+///     let resource = get_resource(&[]);
 ///     let logger_provider = init_logger_provider(&resource)?;
 ///     Ok(())
 /// }

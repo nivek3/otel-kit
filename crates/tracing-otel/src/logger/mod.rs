@@ -14,6 +14,10 @@
 //! - Optional console output
 //! - Optional file output
 //!
+//! The Logger service name identifies the tracer's instrumentation scope.
+//! Resource `service.name` uses SDK defaults or explicit resource attributes.
+//! Set `OTEL_SERVICE_NAME` to configure the resource service name.
+//!
 //! # Quick Start
 //!
 //! ```rust

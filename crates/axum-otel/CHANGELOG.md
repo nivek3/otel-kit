@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+
+- Shorten the HTTP response log message from `finished processing request` to `response`.
+
 ### Fixed
 
 - Update the quick start to the current `Logger` bootstrap and Axum 0.8 APIs, removing obsolete OTLP pipeline calls.

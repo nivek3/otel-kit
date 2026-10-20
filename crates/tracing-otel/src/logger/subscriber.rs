@@ -111,6 +111,8 @@ pub(crate) fn create_output_layers(logger: &Logger) -> Result<OutputLayers> {
 }
 
 /// Initializes the complete tracing stack with OpenTelemetry integration.
+/// The service name identifies the tracer's instrumentation scope; resource
+/// attributes use SDK defaults merged with `attributes`.
 pub fn setup_tracing(
     service_name: &str,
     attributes: &[KeyValue],
@@ -119,7 +121,7 @@ pub fn setup_tracing(
     otel_logs_enabled: bool,
 ) -> Result<OtelGuard> {
     let env_filter = init_env_filter(&level);
-    let resource = get_resource(service_name, attributes);
+    let resource = get_resource(attributes);
     let tracer_provider = init_tracer_provider(&resource)?;
     let meter_provider = init_meter_provider(&resource)?;
     let logger_provider = if otel_logs_enabled {

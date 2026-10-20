@@ -46,7 +46,8 @@
 //! #[tokio::main]
 //! async fn main() {
 //!     // Configure through environment variables:
-//!     // LOG_SERVICE_NAME=my-service
+//!     // OTEL_SERVICE_NAME=my-service
+//!     // LOG_SERVICE_NAME=my-service (tracer instrumentation scope)
 //!     // LOG_FORMAT=json
 //!     // OTEL_TRACES_SAMPLER=parentbased_traceidratio
 //!     // OTEL_TRACES_SAMPLER_ARG=0.1

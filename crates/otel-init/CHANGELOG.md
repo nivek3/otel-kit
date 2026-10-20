@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- Add regression tests for SDK resource defaults and explicit resource attributes.
+
 ### Fixed
 
 - Let the OTLP metric exporter read `OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE` instead of overriding it with the SDK default.
@@ -18,10 +22,10 @@ All notable changes to this project will be documented in this file.
 
 - Remove the sample-ratio argument from `init_tracer_provider`; sampling now uses only `OTEL_TRACES_SAMPLER` / `OTEL_TRACES_SAMPLER_ARG` or the SDK default `parentbased_always_on`.
 - Remove the interval argument from `init_meter_provider` and use the SDK's `with_periodic_exporter`. The interval now uses only `OTEL_METRIC_EXPORT_INTERVAL` (milliseconds) or the SDK default of 60 seconds, replacing the Logger default of 30 seconds.
-- Prefer native service-name environment settings over code configuration. The service-name argument remains a fallback; non-service resource attributes retain their existing precedence.
+- Remove the service-name argument from `get_resource`; call `get_resource(attributes)` instead. Resources now use `Resource::builder()` defaults with explicit attributes merged last, including `service.name`. Configure the resource service name through native SDK environment settings or explicit attributes; there is no Logger service-name fallback.
 - Remove the public `otel_init::macros` module and `protocol_for_signal` helper. Use the native OTLP exporter builders for environment-based protocol selection.
 - With no valid protocol environment setting, the enabled features now select `http/json` instead of `grpc`. Set `OTEL_EXPORTER_OTLP_PROTOCOL=grpc` explicitly to retain gRPC.
-- Protocol values now follow native parsing: `grpc`, `http/protobuf`, and `http/json`. The `http/proto` alias, case normalization, and whitespace trimming are no longer supported; invalid values fall through to the next configuration source.
+- Protocol values now follow native parsing: `grpc`, `http/protobuf`, and `http/json`. ASCII case normalization remains supported, but the `http/proto` alias and whitespace trimming are no longer supported; invalid values fall through to the next configuration source.
 
 ## [0.34.0]
 

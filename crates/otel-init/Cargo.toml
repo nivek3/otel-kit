@@ -20,7 +20,7 @@ subscriber = ["dep:tracing-subscriber", "dep:opentelemetry-appender-tracing"]
 anyhow = { workspace = true }
 
 opentelemetry = { workspace = true }
-opentelemetry-appender-tracing = { workspace = true, optional = true, features = ["experimental_span_attributes"] }
+opentelemetry-appender-tracing = { workspace = true, optional = true }
 opentelemetry-otlp = { workspace = true }
 opentelemetry_sdk = { workspace = true }
 

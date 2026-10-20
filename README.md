@@ -100,7 +100,11 @@ and no connection to `localhost:4317` is attempted:
 ```sh
 export OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317
 export OTEL_EXPORTER_OTLP_PROTOCOL=grpc
+export OTEL_SERVICE_NAME=web-api
 ```
+
+`OTEL_SERVICE_NAME` names the resource. The argument to `Logger::new(...)`
+only names the tracer's instrumentation scope.
 
 See [Getting started](docs/getting-started.md),
 [Logger configuration](docs/logger.md), and

@@ -38,7 +38,7 @@ defaults to `LOG`.
 
 | Environment variable | Logger field | Example |
 | --- | --- | --- |
-| `LOG_SERVICE_NAME` | `service_name` | `orders-api` |
+| `LOG_SERVICE_NAME` | `service_name` (tracer instrumentation scope) | `orders-api` |
 | `LOG_FORMAT` | `format` | `compact`, `pretty`, or `json` |
 | `LOG_SPAN_EVENTS` | `span_events` | `FMT::NEW|FMT::CLOSE` |
 | `LOG_ANSI` | `ansi` | `false` |
@@ -69,6 +69,8 @@ Environment-based configuration requires the `env` feature. Calling
 Sampling uses only native `OTEL_TRACES_SAMPLER` / `OTEL_TRACES_SAMPLER_ARG`, or
 the SDK default `parentbased_always_on`. Metrics use `OTEL_METRIC_EXPORT_INTERVAL`
 in milliseconds, defaulting to 60 seconds. Neither setting has a Logger field or
-`LOG_*` fallback. Native `OTEL_SERVICE_NAME` takes priority over the Logger
-service-name fallback. These native settings work with just the `logger` feature. See
+`LOG_*` fallback. `Logger::service_name` and `LOG_SERVICE_NAME` only configure
+the tracer's instrumentation scope. Resource `service.name` uses SDK defaults;
+set `OTEL_SERVICE_NAME` or provide explicit resource attributes to configure it.
+These native settings work with just the `logger` feature. See
 [precedence details](otlp.md#environment-variable-precedence).

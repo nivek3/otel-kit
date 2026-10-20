@@ -37,7 +37,7 @@ export OTEL_EXPORTER_OTLP_METRICS_PROTOCOL=http/json
 export OTEL_EXPORTER_OTLP_LOGS_PROTOCOL=grpc
 ```
 
-Supported values: `grpc`, `http/protobuf`, `http/json` (exact lowercase values without surrounding whitespace).
+Supported values: `grpc`, `http/protobuf`, `http/json` (ASCII case-insensitive, without surrounding whitespace).
 
 Default behavior: when no endpoint env vars are set, or endpoint env vars are empty, traces, metrics, and logs are local-only and do not attempt to connect to `localhost:4317`. When an endpoint is configured, protocol selection uses the signal-specific variable, then the global variable, then the SDK feature default. Invalid values fall through to the next source. With this crate's enabled features, the default is `http/json`; set `OTEL_EXPORTER_OTLP_PROTOCOL=grpc` explicitly for a gRPC receiver.
 
@@ -60,14 +60,11 @@ use otel_init::{get_resource, init_tracer_provider, init_meter_provider, init_lo
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    // Create resource with service name and attributes
-    let resource = get_resource(
-        "my-service",
-        &[
-            KeyValue::new("environment", "production"),
-            KeyValue::new("version", "1.0.0"),
-        ],
-    );
+    // Create resource using SDK defaults and additional attributes
+    let resource = get_resource(&[
+        KeyValue::new("environment", "production"),
+        KeyValue::new("version", "1.0.0"),
+    ]);
 
     // Initialize providers
     let tracer_provider = init_tracer_provider(&resource)?;
@@ -97,7 +94,7 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt, EnvFilte
 async fn main() -> anyhow::Result<()> {
     // Create resource
     let service_name = "my-service";
-    let resource = get_resource(service_name, &[KeyValue::new("environment", "production")]);
+    let resource = get_resource(&[KeyValue::new("environment", "production")]);
     
     // Initialize providers
     let tracer_provider = init_tracer_provider(&resource)?;
@@ -153,20 +150,18 @@ let meter_provider = init_meter_provider(&resource)?;
 
 Add custom attributes to your service:
 
-Service-name environment settings take priority: a non-empty `OTEL_SERVICE_NAME`,
-then `service.name` in `OTEL_RESOURCE_ATTRIBUTES`, then explicit attributes,
-then the service-name argument below. Other explicit attributes still override
-the corresponding environment attributes.
+Resources use `Resource::builder()` defaults, including SDK metadata and
+environment detection. Set `OTEL_SERVICE_NAME=my-service` to name the service.
+Without a configured service name, the SDK uses `unknown_service:<executable>`.
+Explicit attributes override detected attributes, including `service.name`.
+See [SDK resource behavior](../../docs/otlp.md#environment-variable-precedence).
 
 ```rust
-let resource = get_resource(
-    "my-service",
-    &[
-        KeyValue::new("environment", "production"),
-        KeyValue::new("version", "1.0.0"),
-        KeyValue::new("region", "us-west-2"),
-    ],
-);
+let resource = get_resource(&[
+    KeyValue::new("environment", "production"),
+    KeyValue::new("version", "1.0.0"),
+    KeyValue::new("region", "us-west-2"),
+]);
 ```
 
 ## Features
