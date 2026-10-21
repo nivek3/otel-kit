@@ -9,6 +9,8 @@
 
 ### Fixed
 
+- Inherit the workspace Rust 1.96 minimum in published package metadata.
+
 - Apply the repository lint header, document public request-header constants, declare the test exporter feature explicitly, and list the complete feature dependencies in the README.
 
 ### Migration
