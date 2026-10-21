@@ -22,11 +22,7 @@ use super::env::init_logger_from_env;
 // ============================================================================
 
 /// Log output format
-#[derive(Debug, Default, Clone, Deserialize, Serialize, PartialEq)]
-#[allow(
-    missing_copy_implementations,
-    reason = "Preserve the existing non-Copy configuration API."
-)]
+#[derive(Debug, Default, Clone, Copy, Deserialize, Serialize, PartialEq)]
 pub enum LogFormat {
     /// Compact single-line format
     #[serde(rename = "compact")]
@@ -41,11 +37,7 @@ pub enum LogFormat {
 }
 
 /// Log file rotation strategy
-#[derive(Debug, Default, Clone, Deserialize, Serialize, PartialEq)]
-#[allow(
-    missing_copy_implementations,
-    reason = "Preserve the existing non-Copy configuration API."
-)]
+#[derive(Debug, Default, Clone, Copy, Deserialize, Serialize, PartialEq)]
 pub enum LogRollingRotation {
     /// Rotate every minute
     #[serde(rename = "minutely")]
@@ -168,7 +160,7 @@ impl LoggerFileAppender {
     pub fn merge_with_logger(&self, logger: &Logger) -> LoggerFileAppender {
         LoggerFileAppender {
             level: self.level.or(Some(logger.level)),
-            format: self.format.clone().or(Some(logger.format.clone())),
+            format: self.format.or(Some(logger.format)),
             ..self.clone()
         }
     }
@@ -194,7 +186,7 @@ impl LoggerFileAppender {
 
     /// Get format or default value
     pub fn format_or_default(&self) -> LogFormat {
-        self.format.clone().unwrap_or(LogFormat::Compact)
+        self.format.unwrap_or(LogFormat::Compact)
     }
 
     /// Get rolling rotation from LogRollingRotation

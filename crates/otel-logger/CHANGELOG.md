@@ -8,6 +8,8 @@ Versions through `0.34.0` below were published under those predecessor names;
 
 ### Changed
 
+- Derive `Copy` for `LogFormat` and `LogRollingRotation`.
+
 - Re-export `otel-init::init_env_filter` instead of duplicating `RUST_LOG` parsing; existing public paths and fallback behavior are preserved.
 - Reuse the environment configuration reader for file-appender settings.
 - Use tracing-subscriber's native JSON layer configuration (including disabling ANSI escapes) and Serde's derived log-format parser, preserving case-insensitive values and optional empty values. Invalid formats now use Serde's standard error messages.
