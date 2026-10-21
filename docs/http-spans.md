@@ -1,6 +1,6 @@
 # HTTP span attributes
 
-`tracing-otel::http::span::make_request_span` records shared HTTP server
+`otel_http::span::make_request_span` records shared HTTP server
 attributes. `axum-otel` adds framework-specific values before the remote parent
 context is applied.
 

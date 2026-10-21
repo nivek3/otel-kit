@@ -16,7 +16,7 @@ axum = { workspace = true }
 opentelemetry = { workspace = true }
 tower-http = { workspace = true }
 tracing = { workspace = true }
-tracing-otel = { workspace = true, features = ["macros", "span"] }
+otel-http = { workspace = true, features = ["macros", "span"] }
 
 [dev-dependencies]
 http-body-util = { workspace = true }

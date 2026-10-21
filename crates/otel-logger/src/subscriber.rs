@@ -1,15 +1,12 @@
 //! Tracing subscriber setup and output layer management.
 
-use crate::{
-    logger::{LogFormat, Logger},
-    otel::{
-        OtelGuard, get_resource, init_logger_provider, init_meter_provider, init_tracer_provider,
-        init_tracing_subscriber, opentelemetry::KeyValue,
-    },
-};
+use crate::{LogFormat, Logger};
 use anyhow::{Context, Result};
-use otel_init::BoxLayer;
-pub use otel_init::init_env_filter;
+use opentelemetry::KeyValue;
+use otel_init::{
+    BoxLayer, OtelGuard, get_resource, init_env_filter, init_logger_provider, init_meter_provider,
+    init_tracer_provider, init_tracing_subscriber,
+};
 use tracing::Level;
 use tracing_appender::non_blocking::WorkerGuard;
 use tracing_subscriber::{

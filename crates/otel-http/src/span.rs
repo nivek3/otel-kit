@@ -4,10 +4,7 @@
 //! (for example `server.address`, `user_agent.original`, `url.path`, `url.scheme`, `network.protocol.*`).
 //! See the [`axum_otel` crate](https://docs.rs/axum-otel) documentation for a migration table from older attribute names.
 
-use crate::{
-    dyn_span,
-    http::{context, fields},
-};
+use crate::{context, dyn_span, fields};
 use http::Request;
 use tracing::{Level, Span, field::Empty};
 
@@ -24,7 +21,7 @@ use tracing::{Level, Span, field::Empty};
 /// ```rust
 /// use http::Request;
 /// use tracing::Level;
-/// use tracing_otel::http::span::make_request_span;
+/// use otel_http::span::make_request_span;
 ///
 /// let request = Request::builder().uri("/items").body(()).unwrap();
 /// let _span = make_request_span(Level::INFO, &request, |span| {

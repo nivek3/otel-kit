@@ -1,6 +1,6 @@
 //! OpenTelemetry trace context management.
 
-use crate::http::propagation::extract_context_from_headers;
+use crate::propagation::extract_context_from_headers;
 use opentelemetry::{SpanId, TraceId};
 use tracing::warn;
 

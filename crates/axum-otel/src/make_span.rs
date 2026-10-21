@@ -5,14 +5,14 @@ use axum::{
     http,
 };
 use opentelemetry::trace::SpanKind;
+use otel_http::span::make_request_span;
 use tower_http::trace::MakeSpan;
 use tracing::Level;
-use tracing_otel::http::span::make_request_span;
 
 /// An implementor of [`MakeSpan`] which creates `tracing` spans populated with information about
 /// the request received by an `axum` web server.
 ///
-/// Shared HTTP server span semantics are provided by `tracing-otel`;
+/// Shared HTTP server span semantics are provided by `otel-http`;
 /// this adapter adds only Axum route, peer address, span name, and span kind.
 ///
 /// Original implementation from [tower-http](https://github.com/tower-rs/tower-http/blob/main/tower-http/src/trace/make_span.rs).

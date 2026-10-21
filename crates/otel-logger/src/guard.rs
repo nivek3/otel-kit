@@ -3,7 +3,7 @@
 use anyhow::Result;
 use tracing_appender::non_blocking::WorkerGuard;
 
-use crate::otel::OtelGuard;
+use otel_init::OtelGuard;
 
 /// Owns the OpenTelemetry providers and non-blocking log writers initialized by [`super::Logger`].
 ///
@@ -13,7 +13,7 @@ use crate::otel::OtelGuard;
 /// # Examples
 ///
 /// ```no_run
-/// use tracing_otel::Logger;
+/// use otel_logger::Logger;
 ///
 /// # fn main() -> anyhow::Result<()> {
 /// let guard = Logger::new("my-service").init()?;
@@ -163,7 +163,7 @@ mod tests {
             .duration_since(UNIX_EPOCH)
             .expect("system clock should be after Unix epoch")
             .as_nanos();
-        std::env::temp_dir().join(format!("tracing-otel-{}-{nonce}", std::process::id()))
+        std::env::temp_dir().join(format!("otel-logger-{}-{nonce}", std::process::id()))
     }
 
     fn read_logs(log_dir: &Path) -> std::io::Result<String> {

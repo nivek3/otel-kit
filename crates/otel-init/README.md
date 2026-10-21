@@ -187,5 +187,6 @@ at your option.
 
 ## Related Crates
 
-- [tracing-otel](../tracing-otel/) - HTTP, context, fields, and span utilities
+- [otel-http](../otel-http/) - Shared HTTP server spans and context propagation
+- [otel-logger](../otel-logger/) - Application logging and provider bootstrap
 - [axum-otel](../axum-otel/) - Axum web framework integration 

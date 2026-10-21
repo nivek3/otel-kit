@@ -1,6 +1,8 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+This file retains the history of `tracing-otel` and `tracing-otel-extra`.
+Versions through `0.34.0` below were published under those predecessor names;
+`otel-logger` is a new package introduced by the upcoming split.
 
 ## [Unreleased]
 
@@ -16,6 +18,10 @@ All notable changes to this project will be documented in this file.
 - Update README feature requirements and builder examples, and document SDK environment configuration and explicit resource attributes.
 
 ### Breaking Changes
+
+- Split `tracing-otel` into `otel-logger` and `otel-http`, with no compatibility crate. Logger entry points (including `default`, `setup_tracing`, `init_layer`, and `init_tracing_from_logger`) move to the `otel_logger` root. HTTP modules and macros move to `otel_http`; `extract::http` becomes `otel_http::propagation`.
+- Remove `logger`, `otel`, and the implicit `opentelemetry-otlp` feature from this package. Logger is always available; `env` remains optional. Stop forwarding the full `otel-init` API and SDK crates; retain explicit `OtelGuard`, `BoxLayer`, and `init_env_filter` re-exports. See the [migration guide](../../docs/migration.md#splitting-tracing-otel).
+- The default instrumentation scope name changes from `tracing_otel` to `otel_logger` for `Logger::default()` and deserialization without a service name. Resource `service.name` is unaffected.
 
 - `Logger::service_name`, `with_service_name`, and `LOG_SERVICE_NAME` now only configure the tracer's instrumentation scope. Set resource `service.name` using native SDK environment settings or explicit resource attributes instead; explicit attributes override SDK-detected values.
 - Remove `Logger::sample_ratio`, `with_sample_ratio`, `default::sample_ratio`, and the sample-ratio argument to `setup_tracing`. `LOG_SAMPLE_RATIO` no longer configures sampling. Use `OTEL_TRACES_SAMPLER=parentbased_traceidratio` and `OTEL_TRACES_SAMPLER_ARG` instead; without configuration, the SDK uses `parentbased_always_on`.

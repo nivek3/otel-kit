@@ -1,7 +1,7 @@
 use axum::http;
+use otel_http::dyn_event;
 use tower_http::trace::OnResponse;
 use tracing::Level;
-use tracing_otel::dyn_event;
 
 /// An implementor of [`OnResponse`] which records the response status code and latency.
 ///

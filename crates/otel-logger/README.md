@@ -1,41 +1,45 @@
-# tracing-otel
+# otel-logger
 
-[![Crates.io](https://img.shields.io/crates/v/tracing-otel.svg)](https://crates.io/crates/tracing-otel)
-[![Documentation](https://docs.rs/tracing-otel/badge.svg)](https://docs.rs/tracing-otel)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](../LICENSE)
+[![Crates.io](https://img.shields.io/crates/v/otel-logger.svg)](https://crates.io/crates/otel-logger)
+[![Documentation](https://docs.rs/otel-logger/badge.svg)](https://docs.rs/otel-logger)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](../../LICENSE-MIT)
 
 A tracing and OpenTelemetry integration utility library for Rust applications, providing easy-to-use configuration and initialization capabilities.
 
-`tracing-otel` is the successor to `tracing-otel-extra`. It is a separate crates.io package, so applications must update both the Cargo dependency name and Rust imports; Cargo cannot migrate the package automatically. See the [changelog](CHANGELOG.md) for the migration steps.
+`otel-logger` contains the application logging facade split from `tracing-otel` in the upcoming release. HTTP helpers are in `otel-http`. See the [migration guide](../../docs/migration.md#splitting-tracing-otel) and [changelog](CHANGELOG.md).
 
 ## Features
 
 - **Easy to Use** - Simple configuration of tracing and OpenTelemetry through Builder pattern
 - **Multiple Output Formats** - Support for Compact, Pretty, and JSON formats
-- **Flexible Configuration** - Configurable sampling rates, log levels, metrics collection intervals, etc.
+- **Flexible Configuration** - Configure log levels through Logger; sampling and metric export intervals use the SDK environment settings `OTEL_TRACES_SAMPLER` and `OTEL_METRIC_EXPORT_INTERVAL`.
 - **Automatic Resource Cleanup** - Automatic management of TracerProvider and MeterProvider through RAII pattern
 - **Built-in Metrics Support** - Integrated OpenTelemetry metrics collection and export
 - **Environment Detection** - Automatic detection of operating system and process information
 - **OTLP Export** - Built-in OTLP protocol support, can directly export to Jaeger, OTEL Collector, etc.
-- **HTTP request spans** (with `http` + `span` features) - [`make_request_span`](https://docs.rs/tracing-otel/latest/tracing_otel/http/span/fn.make_request_span.html) uses OpenTelemetry-aligned attribute names and supports framework-specific customization before parent context is applied; see the [`http::span`](https://docs.rs/tracing-otel/latest/tracing_otel/http/span/index.html) module and [`axum-otel`](https://docs.rs/axum-otel) for migration notes.
 
 ## Crate Scope
 
-`tracing-otel` contains shared tracing utilities:
+`Logger` configures console/file logging, a tracing subscriber, trace and metric
+providers, and optional OTLP logs for one process. It is available without any
+feature flags. Enable `env` for `Logger::from_env` and environment helpers.
 
-- `fields`, `http`, `context`, and `span` for HTTP tracing helpers.
-- `macros` for runtime-configurable tracing macros.
-- `logger` and `env` for opinionated application bootstrap.
+`otel-logger` depends on `otel-init` with `subscriber`, and does not depend on
+`otel-http`. Provider-only users can depend directly on `otel-init`.
 
-The `logger` feature intentionally initializes tracing, metrics, optional OpenTelemetry logs, console output, and optional file output. Applications that only need Axum middleware should depend on `axum-otel`; applications that only need provider-level OpenTelemetry setup can use `otel-init`.
+Public bootstrap helpers (`setup_tracing`, `init_layer`, `init_env_filter`,
+`init_tracing_from_logger`), `default`, `OtelGuard`, and `BoxLayer` are available
+at the crate root. SDK crates are no longer re-exported; use their direct
+imports or the existing re-exports in `otel-init`.
 
 ## Quick Start
 
-Add the dependency to your `Cargo.toml`:
+Dependency configuration for the upcoming release:
 
 ```toml
 [dependencies]
-tracing-otel = { version = "0.33", features = ["logger"] }
+otel-logger = "0.34"
+opentelemetry = "0.33"
 tracing = "0.1"
 tokio = { version = "1.0", features = ["full"] }
 anyhow = "1"
@@ -44,7 +48,7 @@ anyhow = "1"
 ### Basic Usage
 
 ```rust
-use tracing_otel::Logger;
+use otel_logger::Logger;
 use tracing::{info, warn};
 
 #[tokio::main]
@@ -63,8 +67,8 @@ async fn main() -> anyhow::Result<()> {
 ### Advanced Configuration
 
 ```rust
-use tracing_otel::{Logger, LogFormat};
-use tracing_otel::otel::opentelemetry::KeyValue;
+use otel_logger::{Logger, LogFormat};
+use opentelemetry::KeyValue;
 use tracing::Level;
 
 #[tokio::main]
@@ -93,7 +97,7 @@ async fn main() -> anyhow::Result<()> {
 ### Legacy API (Backward Compatibility)
 
 ```rust
-use tracing_otel::init_logging;
+use otel_logger::init_logging;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -109,7 +113,7 @@ async fn main() -> anyhow::Result<()> {
 
 | Option                  | Type            | Default    | Description                                            |
 | ----------------------- | --------------- | ---------- | ------------------------------------------------------ |
-| `service_name`          | `String`        | Crate name | Tracer instrumentation scope name; does not set resource `service.name` |
+| `service_name`          | `String`        | `otel_logger` | Tracer instrumentation scope name; does not set resource `service.name` |
 | `format`                | `LogFormat`     | `Compact`  | Log output format: `Compact`, `Pretty`, `Json`         |
 | `ansi`                  | `bool`          | `true`     | Whether to enable ANSI color output                    |
 | `level`                 | `Level`         | `INFO`     | Log level filtering                                    |
@@ -117,6 +121,12 @@ async fn main() -> anyhow::Result<()> {
 | `otel_logs_enabled`     | `bool`          | `false`    | Whether to enable OpenTelemetry logs export            |
 
 ## Environment Variable Configuration
+
+Enable environment-based Logger configuration with:
+
+```toml
+otel-logger = { version = "0.34", features = ["env"] }
+```
 
 This library supports standard OpenTelemetry environment variables:
 
@@ -162,7 +172,7 @@ use axum::{routing::get, Router};
 use axum_otel::{AxumOtelSpanCreator, AxumOtelOnResponse, Level};
 use tower::ServiceBuilder;
 use tower_http::trace::TraceLayer;
-use tracing_otel::{Logger, LogFormat};
+use otel_logger::{Logger, LogFormat};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -252,7 +262,8 @@ guard.shutdown()?; // Manual cleanup
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+Licensed under MIT or Apache-2.0; see [MIT](../../LICENSE-MIT) and
+[Apache-2.0](../../LICENSE-APACHE).
 
 ## Contributing
 

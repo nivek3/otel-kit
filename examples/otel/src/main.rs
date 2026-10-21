@@ -2,13 +2,13 @@ use anyhow::Result;
 use axum::extract::Query;
 use axum::{Router, routing::get};
 use axum_otel::{AxumOtelOnFailure, AxumOtelOnResponse, AxumOtelSpanCreator, Level};
+use otel_logger::Logger;
 use serde::{Deserialize, Serialize};
 use tokio::net::TcpListener;
 use tower::ServiceBuilder;
 use tower_http::request_id::{MakeRequestUuid, PropagateRequestIdLayer, SetRequestIdLayer};
 use tower_http::trace::TraceLayer;
 use tracing::info;
-use tracing_otel::Logger;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct HelloQuery {

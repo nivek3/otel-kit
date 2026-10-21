@@ -1,6 +1,6 @@
 # Logger configuration
 
-`tracing_otel::Logger` is the opinionated application bootstrap. It creates the
+`otel_logger::Logger` is the opinionated application bootstrap. It creates the
 configured console and file layers, initializes trace and metric providers,
 optionally initializes an OpenTelemetry log provider, and installs the global
 tracing subscriber.
@@ -9,7 +9,7 @@ tracing subscriber.
 
 ```rust,no_run
 use tracing::Level;
-use tracing_otel::{LogFormat, Logger};
+use otel_logger::{LogFormat, Logger};
 
 # fn run() -> anyhow::Result<()> {
 let _guard = Logger::new("payments-api")
@@ -22,7 +22,8 @@ let _guard = Logger::new("payments-api")
 # }
 ```
 
-`Logger::default()` uses compact output, ANSI enabled, `INFO`, console output
+`Logger::default()` uses instrumentation scope `otel_logger`, compact output,
+ANSI enabled, `INFO`, console output
 enabled, no file appender, and OpenTelemetry log export disabled. Sampling and
 metric intervals use SDK environment settings or SDK defaults
 (`parentbased_always_on` and 60 seconds). Environment deserialization
@@ -72,5 +73,5 @@ in milliseconds, defaulting to 60 seconds. Neither setting has a Logger field or
 `LOG_*` fallback. `Logger::service_name` and `LOG_SERVICE_NAME` only configure
 the tracer's instrumentation scope. Resource `service.name` uses SDK defaults;
 set `OTEL_SERVICE_NAME` or provide explicit resource attributes to configure it.
-These native settings work with just the `logger` feature. See
+These native settings also work without the `env` feature. See
 [precedence details](otlp.md#environment-variable-precedence).

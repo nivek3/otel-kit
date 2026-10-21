@@ -1,7 +1,4 @@
-use std::{
-    net::SocketAddr,
-    sync::{Mutex, OnceLock},
-};
+use std::{net::SocketAddr, sync::OnceLock};
 
 use axum::{
     Router,
@@ -20,6 +17,7 @@ use opentelemetry_sdk::{
     Resource,
     trace::{InMemorySpanExporter, RandomIdGenerator, Sampler, SdkTracerProvider},
 };
+use tokio::sync::Mutex;
 use tower::ServiceExt;
 use tower_http::trace::TraceLayer;
 use tracing::instrument;
@@ -59,7 +57,7 @@ fn app() -> Router<()> {
 
 #[tokio::test(flavor = "current_thread")]
 async fn test_axum_otel_middleware() {
-    let _test_guard = test_lock().lock().expect("test lock poisoned");
+    let _test_guard = test_lock().lock().await;
 
     // Set up in-memory exporter for testing
     let exporter = InMemorySpanExporter::default();
@@ -162,7 +160,7 @@ async fn test_axum_otel_middleware() {
 
 #[tokio::test(flavor = "current_thread")]
 async fn test_axum_otel_omits_missing_peer() {
-    let _test_guard = test_lock().lock().expect("test lock poisoned");
+    let _test_guard = test_lock().lock().await;
 
     let exporter = InMemorySpanExporter::default();
     let provider: SdkTracerProvider = SdkTracerProvider::builder()

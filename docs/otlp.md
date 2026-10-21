@@ -91,7 +91,7 @@ shutdown is available when the application needs to surface provider shutdown
 errors:
 
 ```rust,no_run
-# use tracing_otel::Logger;
+# use otel_logger::Logger;
 # fn run() -> anyhow::Result<()> {
 let guard = Logger::new("worker").init()?;
 tracing::info!("draining work");

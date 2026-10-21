@@ -2,7 +2,8 @@
 members = [
     "crates/axum-otel",
     "crates/otel-init",
-    "crates/tracing-otel",
+    "crates/otel-http",
+    "crates/otel-logger",
     "examples/microservices/articles",
     "examples/microservices/users",
     "examples/otel",
@@ -16,7 +17,6 @@ authors = ["nivek <h49987180@gmail.com>"]
 edition = "2024"
 license = "MIT/Apache-2.0"
 repository = "https://github.com/nivek3/otel-kit"
-documentation = "https://docs.rs/tracing-otel/"
 readme = "README.md"
 description = "Tracing and OpenTelemetry integration utility library for Rust applications."
 keywords = [
@@ -35,7 +35,8 @@ categories = ["asynchronous"]
 # workspace crates
 axum-otel = { path = "crates/axum-otel", version = "0.34.0" }
 otel-init = { path = "crates/otel-init", version = "0.34.0" }
-tracing-otel = { path = "crates/tracing-otel", version = "0.34.0" }
+otel-http = { path = "crates/otel-http", version = "0.34.0" }
+otel-logger = { path = "crates/otel-logger", version = "0.34.0" }
 
 # external crates
 anyhow = "1.0"
