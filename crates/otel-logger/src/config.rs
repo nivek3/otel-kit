@@ -23,6 +23,10 @@ use super::env::init_logger_from_env;
 
 /// Log output format
 #[derive(Debug, Default, Clone, Deserialize, Serialize, PartialEq)]
+#[allow(
+    missing_copy_implementations,
+    reason = "Preserve the existing non-Copy configuration API."
+)]
 pub enum LogFormat {
     /// Compact single-line format
     #[serde(rename = "compact")]
@@ -38,6 +42,10 @@ pub enum LogFormat {
 
 /// Log file rotation strategy
 #[derive(Debug, Default, Clone, Deserialize, Serialize, PartialEq)]
+#[allow(
+    missing_copy_implementations,
+    reason = "Preserve the existing non-Copy configuration API."
+)]
 pub enum LogRollingRotation {
     /// Rotate every minute
     #[serde(rename = "minutely")]

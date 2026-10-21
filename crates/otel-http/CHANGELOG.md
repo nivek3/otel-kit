@@ -7,6 +7,10 @@
 - Split the shared HTTP server span, field extraction, context propagation, and dynamic tracing macros out of `tracing-otel` into `otel-http`. HTTP modules are public at the crate root; the five HTTP features retain their existing dependency relationships and have no defaults.
 - Retain the existing HTTP semantics, including the customization callback before parent attachment and the standard `http::header::FORWARDED` re-export.
 
+### Fixed
+
+- Apply the repository lint header, document public request-header constants, declare the test exporter feature explicitly, and list the complete feature dependencies in the README.
+
 ### Migration
 
 - Replace `tracing_otel::http::*` with the corresponding `otel_http::*` modules and import dynamic macros from `otel_http`.

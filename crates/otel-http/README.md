@@ -10,14 +10,15 @@ feature, and import changes.
 
 ## Features
 
-There are no default features.
+There are no default features. `dep:` denotes an optional dependency; other
+names in the table denote features of this crate.
 
 | Feature | Public APIs | Enables |
 | --- | --- | --- |
-| `fields` | `fields` request/header helpers and constants | `http` dependency only |
-| `macros` | Root `dyn_span!` and `dyn_event!` macros | `tracing` dependency |
-| `http` | `propagation` context extraction and injection | `fields` |
-| `context` | Current trace/span IDs and remote-parent attachment | `http` |
+| `fields` | `fields` request/header helpers and constants | `dep:http` |
+| `macros` | Root `dyn_span!` and `dyn_event!` macros | `dep:tracing` |
+| `http` | `propagation` context extraction and injection | `fields`, `dep:http`, `dep:opentelemetry`, `dep:opentelemetry-http` |
+| `context` | Current trace/span IDs and remote-parent attachment | `http`, `dep:tracing`, `dep:tracing-opentelemetry` |
 | `span` | `span::make_request_span` | `context`, `macros` |
 
 ## Request spans

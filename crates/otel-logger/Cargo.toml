@@ -21,7 +21,7 @@ anyhow = { workspace = true }
 config = { workspace = true, optional = true }
 opentelemetry = { workspace = true }
 otel-init = { workspace = true, features = ["subscriber"] }
-serde = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
 tracing = { workspace = true }
 tracing-appender = { workspace = true }
 tracing-subscriber = { workspace = true, features = ["json"] }

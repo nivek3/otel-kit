@@ -1,7 +1,5 @@
 # otel-logger
 
-[![Crates.io](https://img.shields.io/crates/v/otel-logger.svg)](https://crates.io/crates/otel-logger)
-[![Documentation](https://docs.rs/otel-logger/badge.svg)](https://docs.rs/otel-logger)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](../../LICENSE-MIT)
 
 A tracing and OpenTelemetry integration utility library for Rust applications, providing easy-to-use configuration and initialization capabilities.

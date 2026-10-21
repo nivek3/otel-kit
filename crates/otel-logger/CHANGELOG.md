@@ -15,6 +15,8 @@ Versions through `0.34.0` below were published under those predecessor names;
 
 ### Fixed
 
+- Apply the repository lint header, document all public default helpers, declare Serde derive support explicitly, and remove registry/documentation badges until the new package is published.
+
 - Update README feature requirements and builder examples, and document SDK environment configuration and explicit resource attributes.
 
 ### Breaking Changes

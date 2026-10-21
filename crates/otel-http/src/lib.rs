@@ -1,3 +1,13 @@
+#![deny(unsafe_code)]
+#![warn(
+    missing_docs,
+    missing_debug_implementations,
+    missing_copy_implementations,
+    trivial_casts,
+    trivial_numeric_casts,
+    unused_import_braces,
+    unused_qualifications
+)]
 //! Framework-independent HTTP server spans and context propagation.
 //!
 //! Enable `fields`, `macros`, `http`, `context`, or `span` for the APIs you use.

@@ -110,7 +110,7 @@ mod tests {
     }
 
     #[test]
-    fn dropping_logger_guard_flushes_non_blocking_file_logs() -> anyhow::Result<()> {
+    fn dropping_logger_guard_flushes_non_blocking_file_logs() -> Result<()> {
         struct TempDirGuard(std::path::PathBuf);
 
         impl Drop for TempDirGuard {

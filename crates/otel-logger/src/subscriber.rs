@@ -1,6 +1,5 @@
 //! Tracing subscriber setup and output layer management.
 
-use crate::{LogFormat, Logger};
 use anyhow::{Context, Result};
 use opentelemetry::KeyValue;
 use otel_init::{
@@ -13,6 +12,8 @@ use tracing_subscriber::{
     Layer, Registry,
     fmt::{self, MakeWriter, format::FmtSpan},
 };
+
+use crate::{LogFormat, Logger};
 
 pub(crate) struct OutputLayers {
     pub(crate) layers: Vec<BoxLayer>,

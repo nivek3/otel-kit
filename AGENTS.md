@@ -109,7 +109,8 @@ Workspace `[workspace.dependencies]` entries must not enable crate features impl
 `otel-logger` exposes Logger without features. Its only optional feature is
 `env = ["dep:config"]`, disabled by default. It always enables `otel-init/subscriber`.
 Do not reintroduce `logger`, `otel`, or the old implicit `opentelemetry-otlp`
-feature. The latter is only a development dependency of `otel-http`.
+feature. Within the two split crates, `opentelemetry-otlp` is only a development
+dependency of `otel-http`; `otel-init` still uses it as a production dependency.
 
 HTTP modules are at the `otel_http` root, with no `http` or `extract` compatibility
 module. Logger entries, `default`, `setup_tracing`, `init_layer`, and

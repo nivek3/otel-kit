@@ -1,3 +1,13 @@
+#![deny(unsafe_code)]
+#![warn(
+    missing_docs,
+    missing_debug_implementations,
+    missing_copy_implementations,
+    trivial_casts,
+    trivial_numeric_casts,
+    unused_import_braces,
+    unused_qualifications
+)]
 //! OpenTelemetry logging configuration and initialization.
 //!
 //! This crate provides a flexible and configurable logging system that integrates

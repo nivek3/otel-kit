@@ -3,8 +3,11 @@
 pub use http::header::FORWARDED;
 use http::{HeaderName, Request};
 
+/// The `X-Request-Id` header used for request correlation.
 pub const X_REQUEST_ID: HeaderName = HeaderName::from_static("x-request-id");
+/// The `Request-Id` fallback header used for request correlation.
 pub const REQUEST_ID: HeaderName = HeaderName::from_static("request-id");
+/// The `X-Forwarded-Proto` header used to determine the original URL scheme.
 pub const X_FORWARDED_PROTO: HeaderName = HeaderName::from_static("x-forwarded-proto");
 
 /// Extract the http method from the request
@@ -13,12 +16,12 @@ pub fn extract_http_method<T>(request: &Request<T>) -> &str {
 }
 
 /// Extract the http route from the request
-pub fn extract_http_route<T>(request: &http::Request<T>) -> &str {
+pub fn extract_http_route<T>(request: &Request<T>) -> &str {
     request.uri().path()
 }
 
 /// Extract the http version from the request
-pub fn extract_http_version<T>(request: &http::Request<T>) -> http::Version {
+pub fn extract_http_version<T>(request: &Request<T>) -> http::Version {
     request.version()
 }
 
@@ -29,12 +32,12 @@ pub fn extract_http_version<T>(request: &http::Request<T>) -> http::Version {
 /// (`http` vs `https`), and [`extract_network_protocol_version`] for
 /// [`network.protocol.version`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/network/)
 /// (e.g. `1.1`, `2`).
-pub fn extract_network_protocol_name<T>(_request: &http::Request<T>) -> &'static str {
+pub fn extract_network_protocol_name<T>(_request: &Request<T>) -> &'static str {
     "http"
 }
 
 /// Extract the network protocol version from the request.
-pub fn extract_network_protocol_version<T>(request: &http::Request<T>) -> Option<&'static str> {
+pub fn extract_network_protocol_version<T>(request: &Request<T>) -> Option<&'static str> {
     match request.version() {
         http::Version::HTTP_09 => Some("0.9"),
         http::Version::HTTP_10 => Some("1.0"),
@@ -46,44 +49,44 @@ pub fn extract_network_protocol_version<T>(request: &http::Request<T>) -> Option
 }
 
 /// Extract the http scheme from the request
-pub fn extract_http_scheme<T>(request: &http::Request<T>) -> Option<&str> {
+pub fn extract_http_scheme<T>(request: &Request<T>) -> Option<&str> {
     request.uri().scheme().map(|s| s.as_str())
 }
 
 /// Extract the URL scheme from the request URI or proxy headers.
-pub fn extract_url_scheme<T>(request: &http::Request<T>) -> Option<&str> {
+pub fn extract_url_scheme<T>(request: &Request<T>) -> Option<&str> {
     extract_http_scheme(request)
         .or_else(|| extract_field_from_headers(request.headers(), &X_FORWARDED_PROTO))
         .or_else(|| extract_forwarded_proto(request.headers()))
 }
 
 /// Extract the http target from the request
-pub fn extract_http_target<T>(request: &http::Request<T>) -> Option<&str> {
+pub fn extract_http_target<T>(request: &Request<T>) -> Option<&str> {
     request.uri().path_and_query().map(|s| s.as_str())
 }
 
 /// Extract the URL path from the request.
-pub fn extract_url_path<T>(request: &http::Request<T>) -> &str {
+pub fn extract_url_path<T>(request: &Request<T>) -> &str {
     request.uri().path()
 }
 
 /// Extract the URL query from the request.
-pub fn extract_url_query<T>(request: &http::Request<T>) -> Option<&str> {
+pub fn extract_url_query<T>(request: &Request<T>) -> Option<&str> {
     request.uri().query()
 }
 
 /// Extract the user agent from the request headers
-pub fn extract_user_agent<T>(request: &http::Request<T>) -> Option<&str> {
+pub fn extract_user_agent<T>(request: &Request<T>) -> Option<&str> {
     extract_field_from_headers(request.headers(), &http::header::USER_AGENT)
 }
 
 /// Extract the `Host` header value.
-pub fn extract_host<T>(request: &http::Request<T>) -> Option<&str> {
+pub fn extract_host<T>(request: &Request<T>) -> Option<&str> {
     extract_field_from_headers(request.headers(), &http::header::HOST)
 }
 
 /// Extract the request id from the request headers
-pub fn extract_request_id<T>(request: &http::Request<T>) -> Option<&str> {
+pub fn extract_request_id<T>(request: &Request<T>) -> Option<&str> {
     extract_request_id_from_headers(request.headers())
 }
 

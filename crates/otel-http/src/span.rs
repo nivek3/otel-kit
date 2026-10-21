@@ -4,9 +4,10 @@
 //! (for example `server.address`, `user_agent.original`, `url.path`, `url.scheme`, `network.protocol.*`).
 //! See the [`axum_otel` crate](https://docs.rs/axum-otel) documentation for a migration table from older attribute names.
 
-use crate::{context, dyn_span, fields};
 use http::Request;
 use tracing::{Level, Span, field::Empty};
+
+use crate::{context, dyn_span, fields};
 
 /// Creates a new [`Span`] and customizes it before applying the remote parent.
 ///

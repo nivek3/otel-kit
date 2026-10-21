@@ -1,3 +1,5 @@
+//! Runtime-level tracing event and span macros.
+
 /// A macro to emit tracing events with dynamic level.
 ///
 /// This macro is used to emit tracing events with a runtime-determined log level.
