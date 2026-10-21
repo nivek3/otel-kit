@@ -6,6 +6,8 @@ Versions through `0.34.0` below were published under those predecessor names;
 
 ## [Unreleased]
 
+## [0.34.1]
+
 ### Changed
 
 - Derive `Copy` for `LogFormat` and `LogRollingRotation`.

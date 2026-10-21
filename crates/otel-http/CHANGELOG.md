@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.34.1]
+
 ### Added
 
 - Split the shared HTTP server span, field extraction, context propagation, and dynamic tracing macros out of `tracing-otel` into `otel-http`. HTTP modules are public at the crate root; the five HTTP features retain their existing dependency relationships and have no defaults.

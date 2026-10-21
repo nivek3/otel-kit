@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.34.1]
+
 ### Changed
 
 - Depend on `otel-http` with `macros` and `span` instead of `tracing-otel`. Public callbacks, shared span semantics, and the `Level` re-export are unchanged. Applications using Logger directly must migrate to `otel-logger`.
