@@ -24,9 +24,9 @@ scope can be exactly what is needed.
 - `AxumOtelOnFailure` marks classified server failures as OpenTelemetry errors.
 
 The broader, opinionated setup comes from composing it with the other workspace
-crates. `tracing-otel` adds shared HTTP span helpers, structured console/file
-logging, and application bootstrap. `otel-init` adds trace, metric, and optional
-log providers plus RAII lifecycle management.
+crates. `otel-http` owns the shared HTTP span helpers. `otel-logger` adds
+structured console/file logging and application bootstrap. `otel-init` adds
+trace, metric, and optional log providers plus RAII lifecycle management.
 
 ## Choosing between them
 

@@ -13,14 +13,14 @@ A structured logging middleware for Axum web framework that integrates with Open
 
 ## Installation
 
-Add this to your `Cargo.toml`:
+The upcoming split release uses the following dependencies:
 
 ```toml
 [dependencies]
-axum-otel = "0.33"
+axum-otel = "0.34"
 axum = { version = "0.8", features = ["macros"] }
 tower-http = { version = "0.6", features = ["trace"] }
-tracing-otel = { version = "0.33", features = ["logger"] }
+otel-logger = "0.34"
 tracing = "0.1"
 tokio = { version = "1", features = ["full"] }
 anyhow = "1"
@@ -37,7 +37,7 @@ use axum_otel::{AxumOtelOnFailure, AxumOtelOnResponse, AxumOtelSpanCreator};
 use std::net::SocketAddr;
 use tower_http::trace::TraceLayer;
 use tracing::Level;
-use tracing_otel::Logger;
+use otel_logger::Logger;
 
 async fn handler() -> &'static str {
     "Hello, world!"

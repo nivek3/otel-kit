@@ -2,29 +2,30 @@
 
 ### Axum request tracing and opinionated OpenTelemetry bootstrap for Rust.
 
-[![Crates.io](https://img.shields.io/crates/v/tracing-otel.svg)](https://crates.io/crates/tracing-otel)
-[![Documentation](https://docs.rs/tracing-otel/badge.svg)](https://docs.rs/tracing-otel)
+[![Crates.io](https://img.shields.io/crates/v/axum-otel.svg)](https://crates.io/crates/axum-otel)
+[![Documentation](https://docs.rs/axum-otel/badge.svg)](https://docs.rs/axum-otel)
 [![License](https://img.shields.io/badge/license-MIT%2FApache--2.0-blue.svg)](LICENSE-MIT)
 
 [Repository guide](docs/README.md) ·
 [`axum-otel`](https://docs.rs/axum-otel) ·
-[`tracing-otel`](https://docs.rs/tracing-otel) ·
+[`otel-http`](crates/otel-http/README.md) ·
+[`otel-logger`](crates/otel-logger/README.md) ·
 [`otel-init`](https://docs.rs/otel-init) ·
 [Examples](examples/)
 
-`otel-kit` is a workspace of three crates with separate
+`otel-kit` is a workspace of four crates with separate
 observability responsibilities:
 
 - `axum-otel` provides `tower-http::TraceLayer` callbacks for inbound Axum
   request spans;
-- `tracing-otel` provides shared HTTP tracing utilities and an optional,
-  opinionated logging/bootstrap facade;
+- `otel-http` provides shared HTTP server spans and context propagation;
+- `otel-logger` provides the application logging/bootstrap facade for one process;
 - `otel-init` initializes OpenTelemetry providers and tracing subscribers and
   owns their shutdown lifecycle.
 
 Choose the smallest crate that owns the behavior your application needs. Use
 `axum-otel` with an existing subscriber for focused request tracing, or combine
-it with `tracing-otel` when you want tracing, metrics, structured logs, and
+it with `otel-logger` when you want tracing, metrics, structured logs, and
 provider lifecycle management configured together.
 
 ## 📦 Crates
@@ -32,30 +33,34 @@ provider lifecycle management configured together.
 | Crate | Responsibility | Use it when |
 | --- | --- | --- |
 | [`axum-otel`](crates/axum-otel/README.md) | Axum-specific request span creation, response events, and failure status | You need inbound Axum request tracing |
-| [`tracing-otel`](crates/tracing-otel/README.md) | HTTP tracing helpers, dynamic tracing macros, console/file logging, and application bootstrap | You need shared tracing behavior or the `Logger` facade |
+| [`otel-http`](crates/otel-http/README.md) | Shared HTTP server spans, context propagation, fields, and dynamic macros | You need framework-independent HTTP helpers |
+| [`otel-logger`](crates/otel-logger/README.md) | Console/file logging and application bootstrap | You need the `Logger` facade |
 | [`otel-init`](crates/otel-init/README.md) | OTLP tracer, meter, and logger providers; subscriber setup; provider shutdown | You own subscriber setup or need provider-level initialization |
 
-The feature-dependent dependency direction is:
+The dependency direction is:
 
 ```text
-axum-otel -> tracing-otel -> otel-init
+axum-otel -> otel-http
+applications -> otel-logger -> otel-init
 ```
 
-`tracing-otel` has no default features. Applications must explicitly enable
-the capabilities they use; see the [Cargo feature guide](docs/features.md).
+`otel-http` has no default features. `otel-logger` exposes `Logger` by default;
+only its environment configuration requires `env`. See the
+[Cargo feature guide](docs/features.md).
 
 ## 🚀 Quick start
 
-This example combines the Axum callbacks with the opinionated `Logger` facade:
+This example combines the Axum callbacks with the opinionated `Logger` facade.
+The split packages are for the upcoming release; snippets show target versions:
 
 ```toml
 [dependencies]
 anyhow = "1"
 axum = "0.8"
-axum-otel = "0.33.1"
+axum-otel = "0.34"
 tokio = { version = "1", features = ["macros", "net", "rt-multi-thread"] }
 tower-http = { version = "0.6", features = ["trace"] }
-tracing-otel = { version = "0.33.1", features = ["logger"] }
+otel-logger = "0.34"
 ```
 
 ```rust
@@ -64,7 +69,7 @@ use axum_otel::{
     AxumOtelOnFailure, AxumOtelOnResponse, AxumOtelSpanCreator, Level,
 };
 use tower_http::trace::TraceLayer;
-use tracing_otel::{LogFormat, Logger};
+use otel_logger::{LogFormat, Logger};
 
 async fn health() -> &'static str {
     "OK"
@@ -136,7 +141,7 @@ scope can be exactly what is needed.
 - `AxumOtelOnFailure` marks classified server failures as OpenTelemetry errors.
 
 The broader, opinionated setup comes from composing it with the other workspace
-crates. `tracing-otel` adds structured console/file logging and application
+crates. `otel-logger` adds structured console/file logging and application
 bootstrap, while `otel-init` adds trace, metric, and optional log providers plus
 RAII lifecycle management.
 
@@ -152,7 +157,7 @@ HTTP attributes including method, route, URL parts, protocol, `server.address`,
 `client.address` when `ConnectInfo<SocketAddr>` is available,
 `user_agent.original`, `request_id`, and `trace_id`.
 
-The shared span schema lives in `tracing-otel`; the Axum adapter owns matched
+The shared span schema lives in `otel-http`; the Axum adapter owns matched
 route, transport peer, span name, and server span kind. See
 [HTTP span attributes](docs/http-spans.md) before writing dashboards, alerts,
 or sampling rules.
@@ -171,29 +176,17 @@ Run the basic service with:
 cargo run -p axum-otel-demo
 ```
 
-## 🔄 Migrating from 0.33.0
+## 🔄 Migrating from `tracing-otel`
 
-Version `0.33.1` introduced new crates.io package names. Cargo does not migrate
-package names automatically:
+The upcoming release splits `tracing-otel` into `otel-http` and `otel-logger`.
+Use `otel-logger` for application bootstrap and `otel-http` for shared HTTP
+helpers. Applications using both must declare both dependencies. No compatibility
+crate is provided under the old name.
 
-```toml
-# Before
-tracing-otel-extra = "0.33.0"
-tracing-opentelemetry-extra = "0.33.0"
-
-# After
-tracing-otel = "0.33.1"
-otel-init = "0.33.1"
-```
-
-Update Rust imports from `tracing_otel_extra` to `tracing_otel` and from
-`tracing_opentelemetry_extra` to `otel_init`. Also select explicit
-`tracing-otel` features: `logger` for code configuration, `env` for
-`Logger::from_env`, or the narrower HTTP features listed in the
-[feature guide](docs/features.md).
-
-See the complete [migration guide](docs/migration.md) for downstream dashboard
-and HTTP attribute changes.
+See the [migration guide](docs/migration.md#splitting-tracing-otel) for every
+public path and feature change, including the default instrumentation scope
+name changing to `otel_logger`. Earlier package migrations remain documented
+there as history.
 
 ## 🧩 Compatibility
 

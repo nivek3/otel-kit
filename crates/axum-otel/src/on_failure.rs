@@ -1,6 +1,6 @@
+use otel_http::dyn_event;
 use tower_http::{classify::ServerErrorsFailureClass, trace::OnFailure};
 use tracing::Level;
-use tracing_otel::dyn_event;
 
 /// An implementor of [`OnFailure`] which records the failure status code.
 ///

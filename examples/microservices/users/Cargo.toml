@@ -8,7 +8,7 @@ license.workspace = true
 
 [dependencies]
 axum-otel = { workspace = true }
-tracing-otel = { workspace = true, features = ["env"] }
+otel-logger = { workspace = true, features = ["env"] }
 
 anyhow = { workspace = true }
 axum = { workspace = true }

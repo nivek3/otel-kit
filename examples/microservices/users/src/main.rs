@@ -5,6 +5,7 @@ use axum::{
     routing::{get, post},
 };
 use axum_otel::{AxumOtelOnFailure, AxumOtelOnResponse, AxumOtelSpanCreator};
+use otel_logger::Logger;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tokio::net::TcpListener;
@@ -12,7 +13,6 @@ use tower::ServiceBuilder;
 use tower_http::request_id::{MakeRequestUuid, PropagateRequestIdLayer, SetRequestIdLayer};
 use tower_http::trace::TraceLayer;
 use tracing::Level;
-use tracing_otel::Logger;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 struct User {

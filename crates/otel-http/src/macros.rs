@@ -1,3 +1,5 @@
+//! Runtime-level tracing event and span macros.
+
 /// A macro to emit tracing events with dynamic level.
 ///
 /// This macro is used to emit tracing events with a runtime-determined log level.
@@ -21,7 +23,7 @@
 /// # Example
 ///
 /// ```rust
-/// use tracing_otel::dyn_event;
+/// use otel_http::dyn_event;
 /// use tracing::Level;
 ///
 /// let is_critical_error = true;
@@ -67,7 +69,7 @@ macro_rules! dyn_event {
 /// # Example
 ///
 /// ```rust
-/// use tracing_otel::dyn_span;
+/// use otel_http::dyn_span;
 /// use tracing::Level;
 ///
 /// let is_important_operation = true;

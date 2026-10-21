@@ -1,0 +1,33 @@
+[package]
+name = "otel-logger"
+version.workspace = true
+rust-version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+categories.workspace = true
+description = "Application logging and OpenTelemetry bootstrap with console and file output."
+documentation = "https://docs.rs/otel-logger"
+homepage = "https://github.com/nivek3/otel-kit/tree/main/crates/otel-logger"
+repository = "https://github.com/nivek3/otel-kit/tree/main/crates/otel-logger"
+readme = "README.md"
+keywords = ["tracing", "opentelemetry", "logging"]
+
+[features]
+default = []
+env = ["dep:config"]
+
+[dependencies]
+anyhow = { workspace = true }
+config = { workspace = true, optional = true }
+opentelemetry = { workspace = true }
+otel-init = { workspace = true, features = ["subscriber"] }
+serde = { workspace = true, features = ["derive"] }
+tracing = { workspace = true }
+tracing-appender = { workspace = true }
+tracing-subscriber = { workspace = true, features = ["json"] }
+
+[dev-dependencies]
+serde_json = { workspace = true }
+serial_test = { workspace = true }
+tokio = { workspace = true }

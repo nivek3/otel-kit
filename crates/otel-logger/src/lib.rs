@@ -1,6 +1,16 @@
+#![deny(unsafe_code)]
+#![warn(
+    missing_docs,
+    missing_debug_implementations,
+    missing_copy_implementations,
+    trivial_casts,
+    trivial_numeric_casts,
+    unused_import_braces,
+    unused_qualifications
+)]
 //! OpenTelemetry logging configuration and initialization.
 //!
-//! This module provides a flexible and configurable logging system that integrates
+//! This crate provides a flexible and configurable logging system that integrates
 //! OpenTelemetry tracing and metrics. It offers both programmatic configuration
 //! through a builder pattern and environment variable-based configuration.
 //!
@@ -9,11 +19,13 @@
 //! - Builder-style configuration API
 //! - Environment variable support (with "env" feature)
 //! - Multiple log formats (compact, pretty, json)
-//! - Configurable sampling and metrics collection
+//! - SDK environment settings for sampling (`OTEL_TRACES_SAMPLER`) and metric export
+//!   intervals (`OTEL_METRIC_EXPORT_INTERVAL`)
 //! - Custom resource attributes
 //! - Optional console output
 //! - Optional file output
 //!
+//! The default instrumentation scope name is `otel_logger`.
 //! The Logger service name identifies the tracer's instrumentation scope.
 //! Resource `service.name` uses SDK defaults or explicit resource attributes.
 //! Set `OTEL_SERVICE_NAME` to configure the resource service name.
@@ -21,7 +33,7 @@
 //! # Quick Start
 //!
 //! ```rust
-//! use tracing_otel::Logger;
+//! use otel_logger::Logger;
 //! use tracing::Level;
 //!
 //! #[tokio::main]
@@ -39,7 +51,7 @@
 //! # Advanced Configuration
 //!
 //! ```rust
-//! use tracing_otel::Logger;
+//! use otel_logger::Logger;
 //! use tracing::Level;
 //! use opentelemetry::KeyValue;
 //!
@@ -75,7 +87,8 @@ pub use deserialize::default;
 pub use env::{init_logger_from_env, init_logging_from_env};
 pub use guard::LoggerGuard;
 pub use init::{init_logging, init_tracing_from_logger};
-pub use subscriber::*;
+pub use otel_init::{BoxLayer, OtelGuard, init_env_filter};
+pub use subscriber::{init_layer, setup_tracing};
 
 // Re-export FmtSpan
 pub use tracing_subscriber::fmt::format::FmtSpan;

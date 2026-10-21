@@ -1,8 +1,9 @@
 //! OpenTelemetry trace context management.
 
-use crate::http::propagation::extract_context_from_headers;
 use opentelemetry::{SpanId, TraceId};
 use tracing::warn;
+
+use crate::propagation::extract_context_from_headers;
 
 /// The key for the trace id in the span attributes.
 pub const TRACE_ID: &str = "trace_id";

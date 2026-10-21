@@ -29,6 +29,7 @@ dependencies = [
  "opentelemetry",
  "opentelemetry-http",
  "opentelemetry_sdk",
+ "otel-logger",
  "reqwest",
  "reqwest-middleware",
  "reqwest-retry",
@@ -40,7 +41,6 @@ dependencies = [
  "tower-http",
  "tracing",
  "tracing-opentelemetry",
- "tracing-otel",
  "tracing-subscriber",
 ]
 
@@ -149,12 +149,12 @@ dependencies = [
  "http-body-util",
  "opentelemetry",
  "opentelemetry_sdk",
+ "otel-http",
  "tokio",
  "tower",
  "tower-http",
  "tracing",
  "tracing-opentelemetry",
- "tracing-otel",
  "tracing-subscriber",
 ]
 
@@ -166,13 +166,13 @@ dependencies = [
  "axum",
  "axum-otel",
  "dotenvy",
+ "otel-logger",
  "serde",
  "serde_json",
  "tokio",
  "tower",
  "tower-http",
  "tracing",
- "tracing-otel",
 ]
 
 [[package]]
@@ -1088,6 +1088,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "otel-http"
+version = "0.34.0"
+dependencies = [
+ "http",
+ "opentelemetry",
+ "opentelemetry-http",
+ "opentelemetry-otlp",
+ "opentelemetry_sdk",
+ "tokio",
+ "tracing",
+ "tracing-opentelemetry",
+ "tracing-subscriber",
+]
+
+[[package]]
 name = "otel-init"
 version = "0.34.0"
 dependencies = [
@@ -1099,6 +1114,23 @@ dependencies = [
  "tokio",
  "tracing",
  "tracing-opentelemetry",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "otel-logger"
+version = "0.34.0"
+dependencies = [
+ "anyhow",
+ "config",
+ "opentelemetry",
+ "otel-init",
+ "serde",
+ "serde_json",
+ "serial_test",
+ "tokio",
+ "tracing",
+ "tracing-appender",
  "tracing-subscriber",
 ]
 
@@ -2216,28 +2248,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "tracing-otel"
-version = "0.34.0"
-dependencies = [
- "anyhow",
- "config",
- "http",
- "opentelemetry",
- "opentelemetry-http",
- "opentelemetry-otlp",
- "opentelemetry_sdk",
- "otel-init",
- "serde",
- "serde_json",
- "serial_test",
- "tokio",
- "tracing",
- "tracing-appender",
- "tracing-opentelemetry",
- "tracing-subscriber",
-]
-
-[[package]]
 name = "tracing-serde"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2312,13 +2322,13 @@ dependencies = [
  "axum",
  "axum-otel",
  "dotenvy",
+ "otel-logger",
  "serde",
  "serde_json",
  "tokio",
  "tower",
  "tower-http",
  "tracing",
- "tracing-otel",
 ]
 
 [[package]]

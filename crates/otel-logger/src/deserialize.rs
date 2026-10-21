@@ -124,38 +124,47 @@ pub mod default {
     use tracing::Level;
     use tracing_subscriber::fmt::format::FmtSpan;
 
+    /// Returns the default instrumentation scope name, `otel_logger`.
     pub fn service_name() -> String {
         env!("CARGO_CRATE_NAME").to_string()
     }
 
+    /// Returns the default maximum number of retained log files: 5.
     pub fn max_log_files() -> usize {
         5
     }
 
+    /// Returns the default minimum log level: `INFO`.
     pub fn log_level() -> Level {
         Level::INFO
     }
 
+    /// Returns the default log directory: `./logs`.
     pub fn dir() -> String {
         "./logs".to_string()
     }
 
+    /// Returns the default log filename prefix: `combine`.
     pub fn filename_prefix() -> String {
         "combine".to_string()
     }
 
+    /// Returns the default log filename suffix: `log`.
     pub fn filename_suffix() -> String {
         "log".to_string()
     }
 
+    /// Returns the default span events: creation and closure.
     pub fn span_events() -> FmtSpan {
         FmtSpan::NEW | FmtSpan::CLOSE
     }
 
+    /// Returns the default log file rotation: hourly.
     pub fn rotation() -> LogRollingRotation {
         LogRollingRotation::Hourly
     }
 
+    /// Returns whether console logging is enabled by default: `true`.
     pub fn console_enabled() -> bool {
         true
     }

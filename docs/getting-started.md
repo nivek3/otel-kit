@@ -1,22 +1,23 @@
 # Getting started
 
-The workspace packages are version `0.33.1`. `tracing-otel` has no default
-features, so applications must enable the capability they use.
+The workspace version is `0.34.0`. The `otel-http` / `otel-logger` split is
+for the upcoming release; the dependency snippets describe that target.
+`Logger` is available without features; HTTP helpers require explicit features.
 
 ## Application logging
 
-Enable `logger` for code-based configuration:
+Use `otel-logger` for code-based configuration:
 
 ```toml
 [dependencies]
-tracing-otel = { version = "0.33.1", features = ["logger"] }
+otel-logger = "0.34"
 anyhow = "1"
 tracing = "0.1"
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 ```
 
 ```rust,no_run
-use tracing_otel::{LogFormat, Logger};
+use otel_logger::{LogFormat, Logger};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -40,16 +41,15 @@ attributes otherwise use [SDK defaults](otlp.md#environment-variable-precedence)
 
 ## Environment-based configuration
 
-Enable `env` when configuration should come from environment variables. It
-includes `logger`:
+Enable `env` when Logger configuration should come from environment variables:
 
 ```toml
 [dependencies]
-tracing-otel = { version = "0.33.1", features = ["env"] }
+otel-logger = { version = "0.34", features = ["env"] }
 ```
 
 ```rust,no_run
-use tracing_otel::Logger;
+use otel_logger::Logger;
 
 # fn run() -> anyhow::Result<()> {
 let _guard = Logger::from_env(Some("LOG"))?.init()?;
@@ -68,8 +68,8 @@ initialization:
 
 ```toml
 [dependencies]
-axum-otel = "0.33.1"
-tracing-otel = { version = "0.33.1", features = ["logger"] }
+axum-otel = "0.34"
+otel-logger = "0.34"
 anyhow = "1"
 axum = "0.8"
 tokio = { version = "1", features = ["macros", "net", "rt-multi-thread"] }

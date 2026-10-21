@@ -13,7 +13,7 @@ use axum_otel::{
     AxumOtelOnFailure, AxumOtelOnResponse, AxumOtelSpanCreator, Level,
 };
 use tower_http::trace::TraceLayer;
-use tracing_otel::Logger;
+use otel_logger::Logger;
 
 async fn health() -> &'static str {
     "OK"
@@ -37,7 +37,7 @@ async fn main() -> anyhow::Result<()> {
 ```
 
 The span creator delegates shared HTTP attributes and remote-parent extraction
-to `tracing-otel`. It owns only Axum-specific enrichment: matched route,
+to `otel-http`. It owns only Axum-specific enrichment: matched route,
 transport peer from `ConnectInfo<SocketAddr>`, span name, and server span kind.
 
 To record `client.address`, serve the router with Axum connect information:

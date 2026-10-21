@@ -1,47 +1,75 @@
 # Cargo features
 
-`tracing-otel` has no default features. Every application must select the
-modules its source code uses.
+`otel-http` and `otel-logger` have no default features. HTTP callers select the
+helpers they use; Logger itself is available without any feature flags.
 
-| Feature | Adds | Implies |
+## `otel-http`
+
+| Feature | Adds | Enables |
 | --- | --- | --- |
-| `fields` | HTTP request field extraction | `http` dependency only |
-| `macros` | Runtime-level `dyn_span!` and `dyn_event!` | `tracing` dependency |
-| `http` | HTTP context extraction and injection | `fields` |
-| `context` | Current trace/span IDs and remote-parent attachment | `http` |
+| `fields` | Request/header extraction | `dep:http` only |
+| `macros` | Root `dyn_span!` and `dyn_event!` macros | `dep:tracing` |
+| `http` | `propagation` context extraction and injection | `fields`, `dep:http`, `dep:opentelemetry`, `dep:opentelemetry-http` |
+| `context` | Current trace/span IDs and remote-parent attachment | `http`, `dep:tracing`, `dep:tracing-opentelemetry` |
 | `span` | Shared HTTP server span creation | `context`, `macros` |
-| `otel` | Re-exports from `otel-init` | `otel-init` dependency |
-| `logger` | Opinionated subscriber, console/file logging, traces, metrics, and optional OTLP logs | `otel`, `otel-init/subscriber` |
-| `env` | Environment deserialization for `Logger` | `logger` |
 
-Examples:
+`dep:` denotes an optional dependency, not another crate feature. In particular,
+`fields` does not enable the `http` propagation feature.
+
+`axum-otel` explicitly enables `macros` and `span`. Applications importing
+`otel_http` themselves must also declare that direct dependency and the features
+they use. `otel-http` does not depend on `otel-init` or `otel-logger`.
+
+## `otel-logger`
+
+| Feature | Adds | Enables |
+| --- | --- | --- |
+| `env` | `Logger::from_env`, `init_logger_from_env`, `init_logging_from_env` | `dep:config` |
+
+Logger always depends on `otel-init` with `subscriber`. The old `logger`, `otel`,
+and implicit `opentelemetry-otlp` features are removed. Exporter construction in
+application code requires a direct exporter dependency.
+
+Dependency examples for the upcoming split release:
 
 ```toml
-# Shared request-span utilities without the Logger facade.
-tracing-otel = { version = "0.33.1", features = ["span"] }
+# Shared HTTP helpers.
+otel-http = { version = "0.34", features = ["span"] }
 
-# Complete code-configured application bootstrap.
-tracing-otel = { version = "0.33.1", features = ["logger"] }
-
-# Logger plus environment configuration.
-tracing-otel = { version = "0.33.1", features = ["env"] }
+# Code-configured application bootstrap.
+otel-logger = "0.34"
 ```
 
-`axum-otel` enables the `tracing-otel` capabilities it uses internally. A
-consumer does not need to duplicate those internal feature choices unless it
-also imports `tracing-otel` APIs directly.
+For environment configuration, replace the Logger dependency with:
 
-`otel-init` has one optional feature:
+```toml
+otel-logger = { version = "0.34", features = ["env"] }
+```
+
+Applications using both sets of APIs must declare both crates. Workspace
+entries do not enable features implicitly; each member selects its own.
+
+## `otel-init`
 
 | Feature | Adds |
 | --- | --- |
-| `subscriber` | `tracing-subscriber` integration and the OpenTelemetry log bridge |
+| `subscriber` | `BoxLayer`, `init_env_filter`, `init_tracing_subscriber`, and the OpenTelemetry log bridge |
 
-Useful contributor checks:
+Direct subscriber users should explicitly enable `subscriber` rather than rely
+on another dependency enabling it through Cargo feature unification.
+
+## Contributor checks
+
+Check packages independently so workspace feature unification cannot hide a
+missing feature:
 
 ```sh
-cargo check -p tracing-otel --no-default-features
-cargo check -p tracing-otel --no-default-features --features span
-cargo check -p tracing-otel --no-default-features --features logger
-cargo check -p tracing-otel --no-default-features --features env
+cargo check -p otel-http --no-default-features
+cargo check -p otel-http --no-default-features --features fields
+cargo check -p otel-http --no-default-features --features macros
+cargo check -p otel-http --no-default-features --features http
+cargo check -p otel-http --no-default-features --features context
+cargo check -p otel-http --no-default-features --features span
+cargo check -p otel-logger --no-default-features
+cargo check -p otel-logger --no-default-features --features env
 ```
