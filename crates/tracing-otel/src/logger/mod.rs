@@ -14,6 +14,10 @@
 //! - Optional console output
 //! - Optional file output
 //!
+//! The Logger service name identifies the tracer's instrumentation scope.
+//! Resource `service.name` uses SDK defaults or explicit resource attributes.
+//! Set `OTEL_SERVICE_NAME` to configure the resource service name.
+//!
 //! # Quick Start
 //!
 //! ```rust
@@ -43,8 +47,6 @@
 //! async fn main() -> anyhow::Result<()> {
 //!     let guard = Logger::new("my-service")
 //!         .with_level(Level::DEBUG)
-//!         .with_sample_ratio(0.5)
-//!         .with_metrics_interval_secs(60)
 //!         .with_console_enabled(true)
 //!         .with_attributes(vec![
 //!             KeyValue::new("environment", "production"),

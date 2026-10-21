@@ -9,21 +9,17 @@ use crate::{
 };
 use anyhow::{Context, Result};
 use otel_init::BoxLayer;
+pub use otel_init::init_env_filter;
 use tracing::Level;
 use tracing_appender::non_blocking::WorkerGuard;
 use tracing_subscriber::{
-    EnvFilter, Layer, Registry,
+    Layer, Registry,
     fmt::{self, MakeWriter, format::FmtSpan},
 };
 
 pub(crate) struct OutputLayers {
     pub(crate) layers: Vec<BoxLayer>,
     pub(crate) worker_guard: Option<WorkerGuard>,
-}
-
-/// Creates an environment filter for tracing based on the given level.
-pub fn init_env_filter(level: &Level) -> EnvFilter {
-    EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new(level.to_string()))
 }
 
 /// Apply the specified format to a tracing layer
@@ -38,10 +34,7 @@ where
     match format {
         LogFormat::Compact => layer.compact().boxed(),
         LogFormat::Pretty => layer.pretty().boxed(),
-        LogFormat::Json => layer
-            .event_format(fmt::format().json().flatten_event(true))
-            .fmt_fields(fmt::format::JsonFields::new())
-            .boxed(),
+        LogFormat::Json => layer.json().flatten_event(true).boxed(),
     }
 }
 
@@ -118,19 +111,19 @@ pub(crate) fn create_output_layers(logger: &Logger) -> Result<OutputLayers> {
 }
 
 /// Initializes the complete tracing stack with OpenTelemetry integration.
+/// The service name identifies the tracer's instrumentation scope; resource
+/// attributes use SDK defaults merged with `attributes`.
 pub fn setup_tracing(
     service_name: &str,
     attributes: &[KeyValue],
-    sample_ratio: f64,
-    metrics_interval_secs: u64,
     level: Level,
     layers: Vec<BoxLayer>,
     otel_logs_enabled: bool,
 ) -> Result<OtelGuard> {
     let env_filter = init_env_filter(&level);
-    let resource = get_resource(service_name, attributes);
-    let tracer_provider = init_tracer_provider(&resource, sample_ratio)?;
-    let meter_provider = init_meter_provider(&resource, metrics_interval_secs)?;
+    let resource = get_resource(attributes);
+    let tracer_provider = init_tracer_provider(&resource)?;
+    let meter_provider = init_meter_provider(&resource)?;
     let logger_provider = if otel_logs_enabled {
         Some(init_logger_provider(&resource)?)
     } else {

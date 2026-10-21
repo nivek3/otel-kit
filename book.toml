@@ -9,9 +9,9 @@ src = "docs"
 site-url = "/otel-kit/"
 default-theme = "light"
 preferred-dark-theme = "navy"
-git-repository-url = "https://github.com/nivek-ph/otel-kit"
+git-repository-url = "https://github.com/nivek3/otel-kit"
 git-repository-icon = "fab-github"
-edit-url-template = "https://github.com/nivek-ph/otel-kit/edit/main/{path}"
+edit-url-template = "https://github.com/nivek3/otel-kit/edit/main/{path}"
 no-section-label = true
 
 [output.html.search]

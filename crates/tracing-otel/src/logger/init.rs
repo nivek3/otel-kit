@@ -17,8 +17,6 @@ pub fn init_tracing_from_logger(logger: Logger) -> Result<LoggerGuard> {
     let otel_guard = setup_tracing(
         &logger.service_name,
         &logger.attributes,
-        logger.sample_ratio,
-        logger.metrics_interval_secs,
         logger.level,
         layers,
         logger.otel_logs_enabled,
@@ -27,7 +25,7 @@ pub fn init_tracing_from_logger(logger: Logger) -> Result<LoggerGuard> {
     Ok(LoggerGuard::new(otel_guard, worker_guard))
 }
 
-/// Convenience function to initialize tracing with default settings
+/// Initialize tracing with default settings and the given instrumentation scope name.
 pub fn init_logging(service_name: &str) -> Result<LoggerGuard> {
     let logger = Logger::new(service_name);
     init_tracing_from_logger(logger)

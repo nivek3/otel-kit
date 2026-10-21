@@ -5,32 +5,17 @@
 //!
 //! - Configuring resource attributes
 //! - Initializing tracer and meter providers
-use crate::macros::build_exporter;
-use anyhow::Result;
+use anyhow::{Context, Result};
 use opentelemetry::global;
-use opentelemetry_sdk::{
-    Resource,
-    logs::SdkLoggerProvider,
-    metrics::{MeterProviderBuilder, PeriodicReader, SdkMeterProvider, Temporality},
-    propagation::TraceContextPropagator,
-    trace::{RandomIdGenerator, Sampler, SdkTracerProvider},
+use opentelemetry_otlp::{
+    OTEL_EXPORTER_OTLP_ENDPOINT, OTEL_EXPORTER_OTLP_LOGS_ENDPOINT,
+    OTEL_EXPORTER_OTLP_METRICS_ENDPOINT, OTEL_EXPORTER_OTLP_TRACES_ENDPOINT,
 };
-use std::{env::var, time::Duration};
-
-/// Global OTLP endpoint environment variable.
-const OTEL_EXPORTER_OTLP_ENDPOINT: &str = "OTEL_EXPORTER_OTLP_ENDPOINT";
-/// Environment variable for signal-specific traces protocol override.
-const OTEL_EXPORTER_OTLP_TRACES_PROTOCOL: &str = "OTEL_EXPORTER_OTLP_TRACES_PROTOCOL";
-/// Environment variable for signal-specific traces endpoint override.
-const OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: &str = "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT";
-/// Environment variable for signal-specific metrics protocol override.
-const OTEL_EXPORTER_OTLP_METRICS_PROTOCOL: &str = "OTEL_EXPORTER_OTLP_METRICS_PROTOCOL";
-/// Environment variable for signal-specific metrics endpoint override.
-const OTEL_EXPORTER_OTLP_METRICS_ENDPOINT: &str = "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT";
-/// Environment variable for signal-specific logs protocol override.
-const OTEL_EXPORTER_OTLP_LOGS_PROTOCOL: &str = "OTEL_EXPORTER_OTLP_LOGS_PROTOCOL";
-/// Environment variable for signal-specific logs endpoint override.
-const OTEL_EXPORTER_OTLP_LOGS_ENDPOINT: &str = "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT";
+use opentelemetry_sdk::{
+    Resource, logs::SdkLoggerProvider, metrics::SdkMeterProvider,
+    propagation::TraceContextPropagator, trace::SdkTracerProvider,
+};
+use std::env::var;
 
 /// Check whether an OTLP exporter should be enabled for a signal.
 ///
@@ -70,73 +55,15 @@ fn endpoint_configured(endpoint_env: &str) -> bool {
         .is_some_and(|value| !value.trim().is_empty())
 }
 
-/// Build the span exporter based on the configured protocol.
-///
-/// # Environment
-///
-/// Resolution order:
-/// 1. `OTEL_EXPORTER_OTLP_TRACES_PROTOCOL`
-/// 2. `OTEL_EXPORTER_OTLP_PROTOCOL`
-/// 3. Falls back to gRPC
-///
-/// # Errors
-///
-/// Returns an error if the exporter cannot be built.
-fn build_span_exporter() -> Result<opentelemetry_otlp::SpanExporter> {
-    build_exporter!(
-        opentelemetry_otlp::SpanExporter::builder(),
-        OTEL_EXPORTER_OTLP_TRACES_PROTOCOL,
-        "Failed to build OTLP span exporter"
-    )
-}
-
-/// Build the metric exporter based on the configured protocol.
-///
-/// # Environment
-///
-/// Resolution order:
-/// 1. `OTEL_EXPORTER_OTLP_METRICS_PROTOCOL`
-/// 2. `OTEL_EXPORTER_OTLP_PROTOCOL`
-/// 3. Falls back to gRPC
-///
-/// # Errors
-///
-/// Returns an error if the exporter cannot be built.
-fn build_metric_exporter() -> Result<opentelemetry_otlp::MetricExporter> {
-    build_exporter!(
-        opentelemetry_otlp::MetricExporter::builder(),
-        OTEL_EXPORTER_OTLP_METRICS_PROTOCOL,
-        "Failed to build OTLP metric exporter",
-        |b| b.with_temporality(Temporality::default())
-    )
-}
-
-/// Build the log exporter based on the configured protocol.
-///
-/// # Environment
-///
-/// Resolution order:
-/// 1. `OTEL_EXPORTER_OTLP_LOGS_PROTOCOL`
-/// 2. `OTEL_EXPORTER_OTLP_PROTOCOL`
-/// 3. Falls back to gRPC
-///
-/// # Errors
-///
-/// Returns an error if the exporter cannot be built.
-fn build_log_exporter() -> Result<opentelemetry_otlp::LogExporter> {
-    build_exporter!(
-        opentelemetry_otlp::LogExporter::builder(),
-        OTEL_EXPORTER_OTLP_LOGS_PROTOCOL,
-        "Failed to build OTLP log exporter"
-    )
-}
-
 /// Initialize a tracer provider for OpenTelemetry tracing.
 ///
 /// # Arguments
 ///
 /// * `resource` - The OpenTelemetry resource to use.
-/// * `sample_ratio` - The ratio of traces to sample (0.0 to 1.0).
+///
+/// Sampling is configured by the SDK using `OTEL_TRACES_SAMPLER` and
+/// `OTEL_TRACES_SAMPLER_ARG`. Without configuration, its default is
+/// `parentbased_always_on`.
 ///
 /// # Errors
 ///
@@ -152,23 +79,20 @@ fn build_log_exporter() -> Result<opentelemetry_otlp::LogExporter> {
 ///
 /// #[tokio::main]
 /// async fn main() -> anyhow::Result<()> {
-///     let resource = get_resource("my-service", &[]);
-///     let tracer_provider = init_tracer_provider(&resource, 1.0)?;
+///     let resource = get_resource(&[]);
+///     let tracer_provider = init_tracer_provider(&resource)?;
 ///     Ok(())
 /// }
 /// ```
-pub fn init_tracer_provider(resource: &Resource, sample_ratio: f64) -> Result<SdkTracerProvider> {
+pub fn init_tracer_provider(resource: &Resource) -> Result<SdkTracerProvider> {
     global::set_text_map_propagator(TraceContextPropagator::new());
 
-    let builder = SdkTracerProvider::builder()
-        .with_sampler(Sampler::ParentBased(Box::new(Sampler::TraceIdRatioBased(
-            sample_ratio,
-        ))))
-        .with_id_generator(RandomIdGenerator::default())
-        .with_resource(resource.clone());
+    let builder = SdkTracerProvider::builder().with_resource(resource.clone());
 
     let tracer_provider = if exporter_enabled(OTEL_EXPORTER_OTLP_TRACES_ENDPOINT) {
-        let exporter = build_span_exporter()?;
+        let exporter = opentelemetry_otlp::SpanExporter::builder()
+            .build()
+            .context("Failed to build OTLP span exporter")?;
         builder.with_batch_exporter(exporter).build()
     } else {
         builder.build()
@@ -184,7 +108,9 @@ pub fn init_tracer_provider(resource: &Resource, sample_ratio: f64) -> Result<Sd
 /// # Arguments
 ///
 /// * `resource` - The OpenTelemetry resource to use.
-/// * `metrics_interval_secs` - The interval in seconds between metric collections.
+///
+/// The SDK reads `OTEL_METRIC_EXPORT_INTERVAL` in milliseconds, defaulting to
+/// 60 seconds when the variable is unset or invalid.
 ///
 /// # Errors
 ///
@@ -200,24 +126,19 @@ pub fn init_tracer_provider(resource: &Resource, sample_ratio: f64) -> Result<Sd
 ///
 /// #[tokio::main]
 /// async fn main() -> anyhow::Result<()> {
-///     let resource = get_resource("my-service", &[]);
-///     let meter_provider = init_meter_provider(&resource, 30)?;
+///     let resource = get_resource(&[]);
+///     let meter_provider = init_meter_provider(&resource)?;
 ///     Ok(())
 /// }
 /// ```
-pub fn init_meter_provider(
-    resource: &Resource,
-    metrics_interval_secs: u64,
-) -> Result<SdkMeterProvider> {
-    let builder = MeterProviderBuilder::default().with_resource(resource.clone());
+pub fn init_meter_provider(resource: &Resource) -> Result<SdkMeterProvider> {
+    let builder = SdkMeterProvider::builder().with_resource(resource.clone());
 
     let meter_provider = if exporter_enabled(OTEL_EXPORTER_OTLP_METRICS_ENDPOINT) {
-        let exporter = build_metric_exporter()?;
-        let reader = PeriodicReader::builder(exporter)
-            .with_interval(Duration::from_secs(metrics_interval_secs))
-            .build();
-
-        builder.with_reader(reader).build()
+        let exporter = opentelemetry_otlp::MetricExporter::builder()
+            .build()
+            .context("Failed to build OTLP metric exporter")?;
+        builder.with_periodic_exporter(exporter).build()
     } else {
         builder.build()
     };
@@ -247,7 +168,7 @@ pub fn init_meter_provider(
 ///
 /// #[tokio::main]
 /// async fn main() -> anyhow::Result<()> {
-///     let resource = get_resource("my-service", &[]);
+///     let resource = get_resource(&[]);
 ///     let logger_provider = init_logger_provider(&resource)?;
 ///     Ok(())
 /// }
@@ -256,7 +177,9 @@ pub fn init_logger_provider(resource: &Resource) -> Result<SdkLoggerProvider> {
     let builder = SdkLoggerProvider::builder().with_resource(resource.clone());
 
     let logger_provider = if exporter_enabled(OTEL_EXPORTER_OTLP_LOGS_ENDPOINT) {
-        let exporter = build_log_exporter()?;
+        let exporter = opentelemetry_otlp::LogExporter::builder()
+            .build()
+            .context("Failed to build OTLP log exporter")?;
         builder.with_batch_exporter(exporter).build()
     } else {
         builder.build()

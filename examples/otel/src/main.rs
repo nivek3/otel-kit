@@ -30,7 +30,7 @@ async fn health() -> &'static str {
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    dotenvy::dotenv().ok();
+    dotenv::dotenv().ok();
 
     let mut logger = Logger::from_env(Some("LOG"))?;
     logger = logger.with_ansi(true);

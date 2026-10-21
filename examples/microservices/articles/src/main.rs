@@ -114,7 +114,7 @@ async fn create_article(
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    dotenvy::dotenv().ok();
+    dotenv::dotenv().ok();
     let logger = Logger::from_env(Some("LOG"))?;
     let _guard = logger.init()?;
 

@@ -144,9 +144,12 @@ Each service uses its own environment file. You need to create these files befor
 ```bash
 cat > articles.env << 'EOF'
 OTEL_EXPORTER_OTLP_ENDPOINT="http://198.18.0.1:4317"
+OTEL_EXPORTER_OTLP_PROTOCOL=grpc
+OTEL_SERVICE_NAME="articles"
 RUST_LOG=info
 LOG_SERVICE_NAME="articles"
 LOG_FORMAT=compact
+LOG_SPAN_EVENTS=FMT::NONE
 LOG_FILE_ENABLE=true
 LOG_FILE_FORMAT=json
 LOG_FILE_DIR=./logs
@@ -157,9 +160,12 @@ EOF
 ```bash
 cat > users.env << 'EOF'
 OTEL_EXPORTER_OTLP_ENDPOINT="http://198.18.0.1:4317"
+OTEL_EXPORTER_OTLP_PROTOCOL=grpc
+OTEL_SERVICE_NAME="users"
 RUST_LOG=info
 LOG_SERVICE_NAME="users"
 LOG_FORMAT=compact
+LOG_SPAN_EVENTS=FMT::NONE
 LOG_FILE_ENABLE=true
 LOG_FILE_FORMAT=json
 LOG_FILE_DIR=./logs
@@ -170,9 +176,12 @@ EOF
 ```bash
 cat > demo.env << 'EOF'
 OTEL_EXPORTER_OTLP_ENDPOINT="http://198.18.0.1:4317"
+OTEL_EXPORTER_OTLP_PROTOCOL=grpc
+OTEL_SERVICE_NAME="demo"
 RUST_LOG=info
 LOG_SERVICE_NAME="demo"
 LOG_FORMAT=compact
+LOG_SPAN_EVENTS=FMT::NONE
 LOG_FILE_ENABLE=true
 LOG_FILE_FORMAT=json
 LOG_FILE_DIR=./logs
@@ -193,7 +202,7 @@ To complete the observability stack, you need to run:
 #### Loki + Tempo Stack
 ```bash
 # Clone and setup dockotlp project
-git clone https://github.com/nivek-ph/dockotlp
+git clone https://github.com/nivek3/dockotlp
 cd dockotlp
 
 # Start Loki + Tempo services

@@ -24,18 +24,15 @@
 //!
 //! #[tokio::main]
 //! async fn main() -> anyhow::Result<()> {
-//!     // Create resource with service name and attributes
-//!     let resource = get_resource(
-//!         "my-service",
-//!         &[
-//!             KeyValue::new("environment", "production"),
-//!             KeyValue::new("version", "1.0.0"),
-//!         ],
-//!     );
+//!     // Create resource using SDK defaults and additional attributes
+//!     let resource = get_resource(&[
+//!         KeyValue::new("environment", "production"),
+//!         KeyValue::new("version", "1.0.0"),
+//!     ]);
 //!
 //!     // Initialize providers
-//!     let tracer_provider = init_tracer_provider(&resource, 1.0)?;
-//!     let meter_provider = init_meter_provider(&resource, 30)?;
+//!     let tracer_provider = init_tracer_provider(&resource)?;
+//!     let meter_provider = init_meter_provider(&resource)?;
 //!     let logger_provider = init_logger_provider(&resource)?;
 //!
 //!     // initialize tracing subscriber with otel layers
@@ -71,6 +68,3 @@ pub use subscriber::{BoxLayer, init_env_filter, init_tracing_subscriber};
 pub use opentelemetry;
 pub use opentelemetry_sdk;
 pub use tracing_opentelemetry;
-
-// Macros module exports
-pub mod macros;

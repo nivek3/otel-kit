@@ -41,12 +41,5 @@ fn build_env_config(prefix: &str) -> Result<Config> {
 }
 
 fn load_file_appender_from_env(prefix: &str) -> Option<LoggerFileAppender> {
-    let env_source = Environment::with_prefix(prefix).try_parsing(true);
-
-    let config = match Config::builder().add_source(env_source).build() {
-        Ok(c) => c,
-        Err(_) => return None,
-    };
-
-    config.try_deserialize().ok()
+    build_env_config(prefix).ok()?.try_deserialize().ok()
 }

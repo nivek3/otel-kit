@@ -72,7 +72,7 @@ impl<B> OnResponse<B> for AxumOtelOnResponse {
             self.level,
             latency = %latency.as_millis(),
             status = %status,
-            "finished processing request"
+            "response"
         );
     }
 }

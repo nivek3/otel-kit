@@ -8,8 +8,8 @@ license.workspace = true
 categories.workspace = true
 description = "OpenTelemetry provider and subscriber initialization with lifecycle management."
 documentation = "https://docs.rs/otel-init"
-homepage = "https://github.com/nivek-ph/otel-kit/tree/main/crates/otel-init"
-repository = "https://github.com/nivek-ph/otel-kit/tree/main/crates/otel-init"
+homepage = "https://github.com/nivek3/otel-kit/tree/main/crates/otel-init"
+repository = "https://github.com/nivek3/otel-kit/tree/main/crates/otel-init"
 readme = "README.md"
 keywords = ["tracing", "opentelemetry"]
 

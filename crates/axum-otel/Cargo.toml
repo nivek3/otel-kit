@@ -6,8 +6,8 @@ authors.workspace = true
 license.workspace = true
 description = "OpenTelemetry tracing for axum based on tower-http."
 documentation = "https://docs.rs/axum-otel"
-homepage = "https://github.com/nivek-ph/otel-kit/tree/main/crates/axum-otel"
-repository = "https://github.com/nivek-ph/otel-kit/tree/main/crates/axum-otel"
+homepage = "https://github.com/nivek3/otel-kit/tree/main/crates/axum-otel"
+repository = "https://github.com/nivek3/otel-kit/tree/main/crates/axum-otel"
 readme = "README.md"
 keywords = ["axum", "tracing", "opentelemetry", "logging"]
 

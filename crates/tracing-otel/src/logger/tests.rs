@@ -19,12 +19,10 @@ struct TestFmtSpan {
 fn test_logger_builder() {
     let logger = Logger::new("test-service")
         .with_level(Level::DEBUG)
-        .with_sample_ratio(0.5)
         .with_attributes(vec![KeyValue::new("test", "value")]);
 
     assert_eq!(logger.service_name, "test-service");
     assert_eq!(logger.level, Level::DEBUG);
-    assert_eq!(logger.sample_ratio, 0.5);
     assert_eq!(logger.attributes.len(), 1);
 }
 
