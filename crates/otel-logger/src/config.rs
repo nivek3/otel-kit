@@ -8,8 +8,8 @@ use tracing_appender::rolling::Rotation;
 use tracing_subscriber::fmt::format::FmtSpan;
 
 use super::deserialize::{
-    default, deserialize_attributes, deserialize_level_optional, deserialize_level_required,
-    deserialize_log_format, deserialize_log_format_optional, deserialize_span_events,
+    default, deserialize_attributes, deserialize_level_required, deserialize_log_format,
+    deserialize_span_events,
 };
 use super::guard::LoggerGuard;
 use super::init::init_tracing_from_logger;
@@ -114,6 +114,7 @@ pub struct Logger {
 
 /// Configuration for file-based log appender.
 #[derive(Debug, Clone, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct LoggerFileAppender {
     /// Enable logger file appender
     pub enable: bool,
@@ -121,18 +122,6 @@ pub struct LoggerFileAppender {
     /// Enable write log to file non-blocking
     #[serde(default)]
     pub non_blocking: bool,
-
-    /// The minimum log level to record.
-    #[serde(default, deserialize_with = "deserialize_level_optional")]
-    pub level: Option<Level>,
-
-    /// Set the logger file appender ansi.
-    #[serde(default)]
-    pub ansi: bool,
-
-    /// Set the logger file appender format.
-    #[serde(default, deserialize_with = "deserialize_log_format_optional")]
-    pub format: Option<LogFormat>,
 
     /// Set the logger file appender rotation.
     #[serde(default = "default::rotation")]
@@ -156,15 +145,6 @@ pub struct LoggerFileAppender {
 }
 
 impl LoggerFileAppender {
-    /// Inherit `level` and `format` from Logger if not set in FileAppender.
-    pub fn merge_with_logger(&self, logger: &Logger) -> LoggerFileAppender {
-        LoggerFileAppender {
-            level: self.level.or(Some(logger.level)),
-            format: self.format.or(Some(logger.format)),
-            ..self.clone()
-        }
-    }
-
     /// Get directory or default value
     pub fn dir_or_default(&self) -> String {
         self.dir.clone().unwrap_or_else(default::dir)
@@ -182,11 +162,6 @@ impl LoggerFileAppender {
         self.filename_suffix
             .clone()
             .unwrap_or_else(default::filename_suffix)
-    }
-
-    /// Get format or default value
-    pub fn format_or_default(&self) -> LogFormat {
-        self.format.unwrap_or(LogFormat::Compact)
     }
 
     /// Get rolling rotation from LogRollingRotation

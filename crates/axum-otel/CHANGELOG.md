@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+
+- Mark service and response-body failures as OpenTelemetry errors even when failure events use WARN or INFO.
+- Stop marking every response span as `OK`, allowing failure callbacks to record OpenTelemetry errors while successful spans retain an unset status.
+
 ## [0.34.1]
 
 ### Changed

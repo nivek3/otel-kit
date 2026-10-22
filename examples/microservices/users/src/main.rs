@@ -59,7 +59,7 @@ async fn get_user(
     }
 }
 
-#[tracing::instrument]
+#[tracing::instrument(skip(state, payload))]
 async fn create_user(State(state): State<AppState>, Json(payload): Json<CreateUser>) -> Json<User> {
     let mut users = state.users.write().await;
     let id = users.len() as u64 + 1;

@@ -11,7 +11,7 @@ use axum_otel::{AxumOtelOnFailure, AxumOtelOnResponse, AxumOtelSpanCreator, Leve
 use http_body_util::BodyExt;
 use opentelemetry::{
     global,
-    trace::{SpanKind, TracerProvider},
+    trace::{SpanKind, Status, TracerProvider},
 };
 use opentelemetry_sdk::{
     Resource,
@@ -47,12 +47,72 @@ fn span_attr(span: &opentelemetry_sdk::trace::SpanData, key: &str) -> Option<Str
 }
 
 fn app() -> Router<()> {
-    Router::new().route("/", get(hello)).route_layer(
-        TraceLayer::new_for_http()
-            .make_span_with(AxumOtelSpanCreator::new().level(Level::INFO))
-            .on_response(AxumOtelOnResponse::new().level(Level::INFO))
-            .on_failure(AxumOtelOnFailure::new()),
-    )
+    Router::new()
+        .route("/", get(hello))
+        .route(
+            "/error",
+            get(|| async { StatusCode::INTERNAL_SERVER_ERROR }),
+        )
+        .route_layer(
+            TraceLayer::new_for_http()
+                .make_span_with(AxumOtelSpanCreator::new().level(Level::INFO))
+                .on_response(AxumOtelOnResponse::new().level(Level::INFO))
+                .on_failure(AxumOtelOnFailure::new()),
+        )
+}
+
+#[test]
+fn failure_status_does_not_depend_on_event_level() {
+    use tower_http::{classify::ServerErrorsFailureClass, trace::OnFailure};
+
+    for level in [Level::WARN, Level::INFO] {
+        for (failure, is_error) in [
+            (
+                ServerErrorsFailureClass::Error("body read failed".into()),
+                true,
+            ),
+            (
+                ServerErrorsFailureClass::StatusCode(StatusCode::INTERNAL_SERVER_ERROR),
+                true,
+            ),
+            (
+                ServerErrorsFailureClass::StatusCode(StatusCode::BAD_REQUEST),
+                false,
+            ),
+        ] {
+            let exporter = InMemorySpanExporter::default();
+            let provider = SdkTracerProvider::builder()
+                .with_simple_exporter(exporter.clone())
+                .build();
+            let subscriber = Registry::default().with(
+                tracing_opentelemetry::OpenTelemetryLayer::new(provider.tracer("failure-test")),
+            );
+            let description = failure.to_string();
+            tracing::subscriber::with_default(subscriber, || {
+                let span = tracing::info_span!(
+                    "request",
+                    otel.status_code = tracing::field::Empty,
+                    otel.status_description = tracing::field::Empty,
+                );
+                let _entered = span.enter();
+                AxumOtelOnFailure::new().level(level).on_failure(
+                    failure,
+                    std::time::Duration::ZERO,
+                    &span,
+                );
+            });
+            provider.force_flush().unwrap();
+            let spans = exporter.get_finished_spans().unwrap();
+            assert_eq!(spans.len(), 1);
+            let expected = if is_error {
+                Status::error(description)
+            } else {
+                Status::Unset
+            };
+            assert_eq!(spans[0].status, expected, "event level: {level}");
+            provider.shutdown().unwrap();
+        }
+    }
 }
 
 #[tokio::test(flavor = "current_thread")]
@@ -90,7 +150,11 @@ async fn test_axum_otel_middleware() {
     request
         .extensions_mut()
         .insert(ConnectInfo(SocketAddr::from(([192, 0, 2, 10], 3000))));
-    let response = app.oneshot(request).await.expect("Failed to send request");
+    let response = app
+        .clone()
+        .oneshot(request)
+        .await
+        .expect("Failed to send request");
 
     assert_eq!(response.status(), StatusCode::OK);
 
@@ -131,6 +195,7 @@ async fn test_axum_otel_middleware() {
         "Handler span should be a child of the request span"
     );
     assert_eq!(request_span.span_kind, SpanKind::Server);
+    assert_eq!(request_span.status, Status::Unset);
     assert_eq!(
         span_attr(request_span, "http.route"),
         Some("/".to_string()),
@@ -151,6 +216,26 @@ async fn test_axum_otel_middleware() {
         span_attr(request_span, "http.response.status_code"),
         Some("200".to_string()),
         "Expected http.response.status_code to be 200"
+    );
+
+    let response = app
+        .oneshot(
+            Request::builder()
+                .uri("/error")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(response.status(), StatusCode::INTERNAL_SERVER_ERROR);
+    response.into_body().collect().await.unwrap();
+    provider.force_flush().unwrap();
+    let spans = exporter.get_finished_spans().unwrap();
+    let failed_span = spans.iter().find(|span| span.name == "GET /error").unwrap();
+    assert!(matches!(failed_span.status, Status::Error { .. }));
+    assert_eq!(
+        span_attr(failed_span, "http.response.status_code"),
+        Some("500".into())
     );
 
     provider

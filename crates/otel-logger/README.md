@@ -161,6 +161,13 @@ library-specific settings, not OpenTelemetry SDK variables. See
 [environment variable precedence](../../docs/otlp.md#environment-variable-precedence)
 for SDK resource detection, explicit attribute overrides, and `.env` loading.
 
+Console and file output share one formatting layer and the same `LOG_FORMAT`,
+`LOG_ANSI`, span events, and global `RUST_LOG` / Logger level filter. A log record
+is formatted once and written to each enabled destination. To keep text files
+free of color escapes, set `LOG_ANSI=false` for both outputs; JSON always disables
+ANSI. File settings only control storage and the writer.
+See [file configuration](../../docs/logger.md#environment-mapping).
+
 ## Integration with Axum
 
 Use with `axum-otel` to achieve complete web service observability:

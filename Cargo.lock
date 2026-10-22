@@ -580,6 +580,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "http-extract"
+version = "0.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d7e0c9969c12c45741b9dac42aa734cb0c2d540151594681b84984f5e7746565"
+dependencies = [
+ "http",
+ "thiserror",
+]
+
+[[package]]
 name = "httparse"
 version = "1.10.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1092,6 +1102,7 @@ name = "otel-http"
 version = "0.34.1"
 dependencies = [
  "http",
+ "http-extract",
  "opentelemetry",
  "opentelemetry-http",
  "opentelemetry-otlp",

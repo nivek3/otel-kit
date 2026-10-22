@@ -21,7 +21,8 @@ use tracing::Level;
 /// are available:
 ///
 /// - `http.request.method`: The HTTP method
-/// - `server.address`: The `Host` header (OpenTelemetry [`server.address`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/server/))
+/// - `server.address`: Host from URI authority, falling back to `Host`, without a port or IPv6 brackets
+/// - `server.port`: Explicit port from the same authority, when available
 /// - `network.protocol.name`: The network protocol name
 /// - `network.protocol.version`: The network protocol version
 /// - `url.path`: The request path
