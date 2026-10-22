@@ -122,7 +122,8 @@ pub struct LoggerFileAppender {
     #[serde(default)]
     pub non_blocking: bool,
 
-    /// The minimum log level to record.
+    /// An optional file-only level filter that further restricts the global filter.
+    /// When absent, only the global `RUST_LOG` or Logger level filter applies.
     #[serde(default, deserialize_with = "deserialize_level_optional")]
     pub level: Option<Level>,
 
@@ -130,7 +131,7 @@ pub struct LoggerFileAppender {
     #[serde(default)]
     pub ansi: bool,
 
-    /// Set the logger file appender format.
+    /// File output format; when absent, inherits Logger's format at initialization.
     #[serde(default, deserialize_with = "deserialize_log_format_optional")]
     pub format: Option<LogFormat>,
 

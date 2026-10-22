@@ -161,6 +161,12 @@ library-specific settings, not OpenTelemetry SDK variables. See
 [environment variable precedence](../../docs/otlp.md#environment-variable-precedence)
 for SDK resource detection, explicit attribute overrides, and `.env` loading.
 
+File output inherits the final Logger format at initialization unless
+`LOG_FILE_FORMAT` (or `LoggerFileAppender.format`) explicitly overrides it.
+`LOG_FILE_LEVEL` only further restricts the global `RUST_LOG` / Logger level
+filter for the file; omitting it adds no restriction and other outputs are
+unaffected. See [file configuration](../../docs/logger.md#environment-mapping).
+
 ## Integration with Axum
 
 Use with `axum-otel` to achieve complete web service observability:

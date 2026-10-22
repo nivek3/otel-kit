@@ -10,6 +10,7 @@ use tracing::Level;
 use tracing_appender::non_blocking::WorkerGuard;
 use tracing_subscriber::{
     Layer, Registry,
+    filter::LevelFilter,
     fmt::{self, MakeWriter, format::FmtSpan},
 };
 
@@ -88,17 +89,23 @@ pub(crate) fn create_output_layers(logger: &Logger) -> Result<OutputLayers> {
             worker_guard = Some(non_blocking_worker_guard);
             init_layer(
                 non_blocking_file_appender,
-                &config.format_or_default(),
+                &config.format.unwrap_or(logger.format),
                 logger.span_events.clone(),
                 config.ansi,
             )
         } else {
             init_layer(
                 file_appender,
-                &config.format_or_default(),
+                &config.format.unwrap_or(logger.format),
                 logger.span_events.clone(),
                 config.ansi,
             )
+        };
+        let file_appender_layer = match config.level {
+            Some(level) => file_appender_layer
+                .with_filter(LevelFilter::from_level(level))
+                .boxed(),
+            None => file_appender_layer,
         };
         layers.push(file_appender_layer);
     }
@@ -111,6 +118,9 @@ pub(crate) fn create_output_layers(logger: &Logger) -> Result<OutputLayers> {
 /// Initializes the complete tracing stack with OpenTelemetry integration.
 /// The service name identifies the tracer's instrumentation scope; resource
 /// attributes use SDK defaults merged with `attributes`.
+///
+/// On failure, already-created providers are shut down. Global provider and
+/// propagator registrations are not restored; initialization is not transactional.
 pub fn setup_tracing(
     service_name: &str,
     attributes: &[KeyValue],
@@ -121,9 +131,25 @@ pub fn setup_tracing(
     let env_filter = init_env_filter(&level);
     let resource = get_resource(attributes);
     let tracer_provider = init_tracer_provider(&resource)?;
-    let meter_provider = init_meter_provider(&resource)?;
+    let meter_provider = match init_meter_provider(&resource) {
+        Ok(provider) => provider,
+        Err(error) => {
+            drop(OtelGuard::new(Some(tracer_provider), None, None));
+            return Err(error);
+        }
+    };
     let logger_provider = if otel_logs_enabled {
-        Some(init_logger_provider(&resource)?)
+        match init_logger_provider(&resource) {
+            Ok(provider) => Some(provider),
+            Err(error) => {
+                drop(OtelGuard::new(
+                    Some(tracer_provider),
+                    Some(meter_provider),
+                    None,
+                ));
+                return Err(error);
+            }
+        }
     } else {
         None
     };

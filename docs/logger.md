@@ -54,14 +54,28 @@ File settings use the `LOG_FILE` prefix:
 | --- | --- |
 | `LOG_FILE_ENABLE` | Enable the file layer |
 | `LOG_FILE_NON_BLOCKING` | Use the non-blocking writer |
-| `LOG_FILE_LEVEL` | Optional file-specific level |
+| `LOG_FILE_LEVEL` | Optional file-only level filter; further restricts the global filter |
 | `LOG_FILE_ANSI` | ANSI in file output |
-| `LOG_FILE_FORMAT` | Optional file-specific format |
+| `LOG_FILE_FORMAT` | Optional file-specific format; otherwise inherits Logger's format at initialization |
 | `LOG_FILE_ROTATION` | `minutely`, `hourly`, `daily`, or `never` |
 | `LOG_FILE_DIR` | Output directory |
 | `LOG_FILE_FILENAME_PREFIX` | Filename prefix |
 | `LOG_FILE_FILENAME_SUFFIX` | Filename suffix |
 | `LOG_FILE_MAX_LOG_FILES` | Maximum retained files |
+
+With no `LOG_FILE_*` variables, no file appender is configured. If any are
+present, `LOG_FILE_ENABLE` is required and the complete file configuration must
+be valid, even when disabled. Invalid values return an error instead of silently
+disabling file output.
+
+An omitted file format inherits the Logger format when output layers are
+created, for both builder and environment configuration. Changing the Logger
+format after `from_env` also applies to the file unless it has an explicit format.
+An omitted file level adds no filter beyond the global `RUST_LOG` or Logger
+level. An explicit file level can only further restrict that global filter;
+it cannot restore events already excluded globally or change console filtering.
+For example, `RUST_LOG=debug` with `LOG_FILE_LEVEL=warn` keeps debug events on the
+console while writing only warn/error events to the file.
 
 Environment-based configuration requires the `env` feature. Calling
 `Logger::new(...)` does not read `LOG_*`; use `Logger::from_env(...)` or

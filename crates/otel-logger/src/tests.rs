@@ -107,3 +107,54 @@ fn test_logger_console_control() {
     let logger = Logger::new("test-service").with_console_enabled(false);
     assert!(!logger.console_enabled);
 }
+
+#[test]
+#[serial]
+#[cfg(feature = "env")]
+fn file_environment_configuration_preserves_overrides_and_reports_errors() {
+    let absent = Logger::from_env(Some("OTEL_KIT_CONFIG_TEST")).unwrap();
+    assert!(absent.file_appender.is_none());
+
+    let cases = [
+        ("ENABLE", "true", true),
+        ("ENABLE", "false", true),
+        ("ENABLE", "invalid", false),
+        ("FORMAT", "invalid", false),
+        ("LEVEL", "invalid", false),
+        ("ROTATION", "invalid", false),
+        ("MAX_LOG_FILES", "invalid", false),
+    ];
+    for (field, value, valid) in cases {
+        let key = format!("OTEL_KIT_CONFIG_TEST_FILE_{field}");
+        #[allow(unsafe_code)]
+        unsafe {
+            std::env::set_var("OTEL_KIT_CONFIG_TEST_FILE_ENABLE", "true");
+            std::env::set_var(&key, value);
+        }
+        let result = Logger::from_env(Some("OTEL_KIT_CONFIG_TEST"));
+        #[allow(unsafe_code)]
+        unsafe {
+            std::env::remove_var(&key);
+            std::env::remove_var("OTEL_KIT_CONFIG_TEST_FILE_ENABLE");
+        }
+        if valid {
+            let file = result.unwrap().file_appender.unwrap();
+            assert!(file.format.is_none());
+            assert!(file.level.is_none());
+        } else {
+            let error = result.unwrap_err().to_string();
+            assert!(error.contains("OTEL_KIT_CONFIG_TEST_FILE"), "{error}");
+        }
+    }
+
+    #[allow(unsafe_code)]
+    unsafe {
+        std::env::set_var("OTEL_KIT_CONFIG_TEST_FILE_FORMAT", "json");
+    }
+    let incomplete = Logger::from_env(Some("OTEL_KIT_CONFIG_TEST"));
+    #[allow(unsafe_code)]
+    unsafe {
+        std::env::remove_var("OTEL_KIT_CONFIG_TEST_FILE_FORMAT");
+    }
+    assert!(incomplete.is_err(), "file settings require an ENABLE value");
+}

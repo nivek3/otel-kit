@@ -6,6 +6,17 @@ Versions through `0.34.0` below were published under those predecessor names;
 
 ## [Unreleased]
 
+### Fixed
+
+- Shut down already-created providers when a later provider fails to initialize; global registrations are not rolled back.
+- Report invalid or incomplete file environment configuration instead of silently disabling file output.
+- Apply explicit file levels as additional filters without changing the global or console filter. Omitted file levels remain unset and use only the global filter.
+
+### Changed
+
+- Resolve omitted file formats from the final Logger format at initialization for both builder and environment configuration, including later `with_format` overrides. Code-configured file output no longer defaults independently to Compact.
+- Leave omitted file format and level fields as `None` during environment loading instead of eagerly copying Logger defaults.
+
 ## [0.34.1]
 
 ### Changed

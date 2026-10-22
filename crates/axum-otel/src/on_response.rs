@@ -10,7 +10,8 @@ use tracing::Level;
 /// This component adds the following attributes to the span:
 ///
 /// - `http.response.status_code`: The response status code
-/// - `otel.status_code`: The OpenTelemetry status code (OK for successful responses)
+///
+/// Leaves the OpenTelemetry status unset so failure callbacks can mark errors.
 ///
 /// # Example
 ///
@@ -66,7 +67,6 @@ impl<B> OnResponse<B> for AxumOtelOnResponse {
     ) {
         let status = response.status().as_u16();
         span.record("http.response.status_code", i64::from(status));
-        span.record("otel.status_code", "OK");
 
         dyn_event!(
             self.level,

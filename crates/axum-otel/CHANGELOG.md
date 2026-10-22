@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+
+- Stop marking every response span as `OK`, allowing failure callbacks to record OpenTelemetry errors while successful spans retain an unset status.
+
 ## [0.34.1]
 
 ### Changed

@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Skip parent attachment for disabled spans or missing OpenTelemetry layers without emitting warnings or recording invalid trace IDs.
+
 ## [0.34.1]
 
 ### Added
