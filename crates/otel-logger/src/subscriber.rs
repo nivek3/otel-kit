@@ -10,7 +10,11 @@ use tracing::Level;
 use tracing_appender::non_blocking::WorkerGuard;
 use tracing_subscriber::{
     Layer, Registry,
-    fmt::{self, MakeWriter, format::FmtSpan},
+    fmt::{
+        self, MakeWriter,
+        format::FmtSpan,
+        writer::{BoxMakeWriter, MakeWriterExt},
+    },
 };
 
 use crate::{LogFormat, Logger};
@@ -53,55 +57,51 @@ where
     apply_layer_format(layer, format)
 }
 
-/// Create output layers based on configuration.
+/// Create a single formatting layer for all enabled outputs.
 pub(crate) fn create_output_layers(logger: &Logger) -> Result<OutputLayers> {
-    let mut layers: Vec<BoxLayer> = vec![];
     let mut worker_guard = None;
-
-    // Add console layer if enabled
-    if logger.console_enabled {
-        let stdout_layer = init_layer(
-            std::io::stdout,
-            &logger.format,
-            logger.span_events.clone(),
-            logger.ansi,
-        );
-        layers.push(stdout_layer);
-    }
-    // Add file layer if configured and enabled
-    if let Some(config) = &logger.file_appender
+    let file_writer = if let Some(config) = &logger.file_appender
         && config.enable
     {
-        let rolling_builder = tracing_appender::rolling::Builder::new()
+        let appender = tracing_appender::rolling::Builder::new()
             .max_log_files(config.max_log_files)
-            .rotation(config.get_rolling_rotation());
-
-        let file_appender = rolling_builder
+            .rotation(config.get_rolling_rotation())
             .filename_prefix(config.filename_prefix_or_default())
             .filename_suffix(config.filename_suffix_or_default())
             .build(config.dir_or_default())
             .context("Failed to build file appender")?;
 
-        let file_appender_layer = if config.non_blocking {
-            let (non_blocking_file_appender, non_blocking_worker_guard) =
-                tracing_appender::non_blocking(file_appender);
-            worker_guard = Some(non_blocking_worker_guard);
-            init_layer(
-                non_blocking_file_appender,
-                &config.format_or_default(),
-                logger.span_events.clone(),
-                config.ansi,
-            )
+        Some(if config.non_blocking {
+            let (writer, guard) = tracing_appender::non_blocking(appender);
+            worker_guard = Some(guard);
+            BoxMakeWriter::new(writer)
         } else {
-            init_layer(
-                file_appender,
-                &config.format_or_default(),
-                logger.span_events.clone(),
-                config.ansi,
-            )
-        };
-        layers.push(file_appender_layer);
-    }
+            BoxMakeWriter::new(appender)
+        })
+    } else {
+        None
+    };
+
+    let layers = if let Some(file_writer) = file_writer {
+        let console_enabled = logger.console_enabled;
+        let console_writer = std::io::stdout.with_filter(move |_| console_enabled);
+        // Format once so both destinations share the same bytes and span-field cache.
+        vec![init_layer(
+            console_writer.and(file_writer),
+            &logger.format,
+            logger.span_events.clone(),
+            logger.ansi,
+        )]
+    } else if logger.console_enabled {
+        vec![init_layer(
+            std::io::stdout,
+            &logger.format,
+            logger.span_events.clone(),
+            logger.ansi,
+        )]
+    } else {
+        vec![]
+    };
     Ok(OutputLayers {
         layers,
         worker_guard,
@@ -111,6 +111,9 @@ pub(crate) fn create_output_layers(logger: &Logger) -> Result<OutputLayers> {
 /// Initializes the complete tracing stack with OpenTelemetry integration.
 /// The service name identifies the tracer's instrumentation scope; resource
 /// attributes use SDK defaults merged with `attributes`.
+///
+/// On failure, already-created providers are shut down. Global provider and
+/// propagator registrations are not restored; initialization is not transactional.
 pub fn setup_tracing(
     service_name: &str,
     attributes: &[KeyValue],
@@ -121,9 +124,25 @@ pub fn setup_tracing(
     let env_filter = init_env_filter(&level);
     let resource = get_resource(attributes);
     let tracer_provider = init_tracer_provider(&resource)?;
-    let meter_provider = init_meter_provider(&resource)?;
+    let meter_provider = match init_meter_provider(&resource) {
+        Ok(provider) => provider,
+        Err(error) => {
+            drop(OtelGuard::new(Some(tracer_provider), None, None));
+            return Err(error);
+        }
+    };
     let logger_provider = if otel_logs_enabled {
-        Some(init_logger_provider(&resource)?)
+        match init_logger_provider(&resource) {
+            Ok(provider) => Some(provider),
+            Err(error) => {
+                drop(OtelGuard::new(
+                    Some(tracer_provider),
+                    Some(meter_provider),
+                    None,
+                ));
+                return Err(error);
+            }
+        }
     } else {
         None
     };

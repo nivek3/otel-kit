@@ -15,11 +15,11 @@ names in the table denote features of this crate.
 
 | Feature | Public APIs | Enables |
 | --- | --- | --- |
-| `fields` | `fields` request/header helpers and constants | `dep:http` |
+| `fields` | `fields` request/header helpers and constants | `dep:http`, `dep:http-extract` (`request-id`, `scheme`) |
 | `macros` | Root `dyn_span!` and `dyn_event!` macros | `dep:tracing` |
 | `http` | `propagation` context extraction and injection | `fields`, `dep:http`, `dep:opentelemetry`, `dep:opentelemetry-http` |
 | `context` | Current trace/span IDs and remote-parent attachment | `http`, `dep:tracing`, `dep:tracing-opentelemetry` |
-| `span` | `span::make_request_span` | `context`, `macros` |
+| `span` | `span::make_request_span` | `context`, `macros`, `http-extract/authority` |
 
 ## Request spans
 

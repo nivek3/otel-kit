@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Upgrade to `http-extract` 0.1.4 and directly re-export its Result-based request ID, singular header text, and URL scheme APIs. Remove the forwarding wrappers and local `Forwarded` proto parser; preserve errors for callers and omit invalid optional metadata only at span recording. Proxy schemes are now validated and normalized, with the first validated XFP protocol selected.
+- Use `http-extract`'s authority extraction for URI/Host precedence and validation; split `server.address` from explicit integer `server.port`, without proxy-header handling or default-port inference.
+- Skip parent attachment for disabled spans or missing OpenTelemetry layers without emitting warnings or recording invalid trace IDs.
+
 ## [0.34.1]
 
 ### Added

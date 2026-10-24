@@ -33,10 +33,15 @@ pub fn current_span_id() -> SpanId {
 /// Set the parent span for the current span and record the trace id.
 pub fn set_otel_parent(headers: &http::HeaderMap, span: &tracing::Span) {
     use opentelemetry::trace::TraceContextExt as _;
-    use tracing_opentelemetry::OpenTelemetrySpanExt as _;
+    use tracing_opentelemetry::{OpenTelemetrySpanExt as _, SetParentError};
+    if span.is_disabled() {
+        return;
+    }
     let remote_context = extract_context_from_headers(headers);
-    if let Err(e) = span.set_parent(remote_context) {
-        warn!("Failed to set parent on span: {:?}", e);
+    match span.set_parent(remote_context) {
+        Ok(()) => {}
+        Err(SetParentError::LayerNotFound | SetParentError::SpanDisabled) => return,
+        Err(e) => warn!("Failed to set parent on span: {:?}", e),
     }
 
     let trace_id = span.context().span().span_context().trace_id();
@@ -83,6 +88,47 @@ mod tests {
 
     fn create_span() -> Span {
         tracing::span!(Level::INFO, "test_span")
+    }
+
+    #[test]
+    fn disabled_spans_and_missing_otel_layer_are_silent() {
+        use std::sync::{
+            Arc,
+            atomic::{AtomicUsize, Ordering},
+        };
+        use tracing_subscriber::{Layer, filter::LevelFilter, layer::Context};
+
+        struct CountUpdates(Arc<AtomicUsize>);
+        impl<S: tracing::Subscriber> Layer<S> for CountUpdates {
+            fn on_event(&self, _: &tracing::Event<'_>, _: Context<'_, S>) {
+                self.0.fetch_add(1, Ordering::Relaxed);
+            }
+
+            fn on_record(
+                &self,
+                _: &tracing::span::Id,
+                _: &tracing::span::Record<'_>,
+                _: Context<'_, S>,
+            ) {
+                self.0.fetch_add(1, Ordering::Relaxed);
+            }
+        }
+
+        let updates = Arc::new(AtomicUsize::new(0));
+        let subscriber = tracing_subscriber::registry()
+            .with(CountUpdates(updates.clone()))
+            .with(LevelFilter::WARN);
+        tracing::subscriber::with_default(subscriber, || {
+            let disabled = tracing::info_span!("disabled", trace_id = tracing::field::Empty);
+            assert!(disabled.is_disabled());
+            set_otel_parent(&http::HeaderMap::new(), &disabled);
+
+            let without_otel =
+                tracing::warn_span!("without_otel", trace_id = tracing::field::Empty);
+            assert!(!without_otel.is_disabled());
+            set_otel_parent(&http::HeaderMap::new(), &without_otel);
+        });
+        assert_eq!(updates.load(Ordering::Relaxed), 0);
     }
 
     #[tokio::test]

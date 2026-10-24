@@ -37,13 +37,13 @@ struct AppState {
     http_client: ClientWithMiddleware,
 }
 
-#[tracing::instrument]
+#[tracing::instrument(skip(state))]
 async fn get_articles(State(state): State<AppState>) -> Json<Vec<Article>> {
     let articles = state.articles.read().await;
     Json(articles.clone())
 }
 
-#[tracing::instrument]
+#[tracing::instrument(skip(state))]
 async fn get_article(
     State(state): State<AppState>,
     Path(id): Path<u64>,
@@ -95,7 +95,7 @@ async fn get_articles_by_author(
     Ok(Json(author_articles))
 }
 
-#[tracing::instrument(skip(state))]
+#[tracing::instrument(skip(state, payload))]
 async fn create_article(
     State(state): State<AppState>,
     Json(payload): Json<CreateArticle>,

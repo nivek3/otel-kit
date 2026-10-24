@@ -1,5 +1,5 @@
 use crate::guard::OtelGuard;
-use anyhow::Result;
+use anyhow::{Context, Result};
 use opentelemetry_appender_tracing::layer::OpenTelemetryTracingBridge;
 use opentelemetry_sdk::{
     logs::SdkLoggerProvider, metrics::SdkMeterProvider, trace::SdkTracerProvider,
@@ -32,8 +32,11 @@ pub fn init_env_filter(level: &Level) -> EnvFilter {
     EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new(level.to_string()))
 }
 
-// Initialize tracing-subscriber and return OtelGuard for opentelemetry-related termination processing
-// https://github.com/tokio-rs/tracing-opentelemetry/blob/6b4da4a08b4f6481a2feb2974f06c67765cd44c6/examples/opentelemetry-otlp.rs#L76
+/// Install the global tracing subscriber and take ownership of provider shutdown.
+///
+/// Returns an error if installation fails, including when a global subscriber
+/// already exists. The supplied providers are shut down on failure. Global
+/// registrations are not rolled back; installation is not transactional.
 pub fn init_tracing_subscriber(
     name: &str,
     env_filter: EnvFilter,
@@ -58,13 +61,11 @@ pub fn init_tracing_subscriber(
 
     layers.extend(extended_layers);
 
+    let guard = OtelGuard::new(Some(tracer_provider), Some(meter_provider), logger_provider);
     tracing_subscriber::registry()
         .with(layers)
         .with(env_filter)
-        .init();
-    Ok(OtelGuard::new(
-        Some(tracer_provider),
-        Some(meter_provider),
-        logger_provider,
-    ))
+        .try_init()
+        .context("Failed to install global tracing subscriber")?;
+    Ok(guard)
 }

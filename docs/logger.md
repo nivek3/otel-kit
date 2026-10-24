@@ -1,7 +1,7 @@
 # Logger configuration
 
 `otel_logger::Logger` is the opinionated application bootstrap. It creates the
-configured console and file layers, initializes trace and metric providers,
+shared formatting layer for the configured console and file outputs, initializes trace and metric providers,
 optionally initializes an OpenTelemetry log provider, and installs the global
 tracing subscriber.
 
@@ -45,23 +45,39 @@ defaults to `LOG`.
 | `LOG_ANSI` | `ansi` | `false` |
 | `LOG_LEVEL` | `level` | `info` |
 | `LOG_ATTRIBUTES` | resource attributes | `deployment.environment=prod` |
-| `LOG_CONSOLE_ENABLED` | console layer | `true` |
+| `LOG_CONSOLE_ENABLED` | console output | `true` |
 | `LOG_OTEL_LOGS_ENABLED` | OTLP log provider/layer | `true` |
 
 File settings use the `LOG_FILE` prefix:
 
 | Environment variable | Meaning |
 | --- | --- |
-| `LOG_FILE_ENABLE` | Enable the file layer |
+| `LOG_FILE_ENABLE` | Enable file output |
 | `LOG_FILE_NON_BLOCKING` | Use the non-blocking writer |
-| `LOG_FILE_LEVEL` | Optional file-specific level |
-| `LOG_FILE_ANSI` | ANSI in file output |
-| `LOG_FILE_FORMAT` | Optional file-specific format |
 | `LOG_FILE_ROTATION` | `minutely`, `hourly`, `daily`, or `never` |
 | `LOG_FILE_DIR` | Output directory |
 | `LOG_FILE_FILENAME_PREFIX` | Filename prefix |
 | `LOG_FILE_FILENAME_SUFFIX` | Filename suffix |
 | `LOG_FILE_MAX_LOG_FILES` | Maximum retained files |
+
+With no `LOG_FILE_*` variables, no file appender is configured. If any are
+present, `LOG_FILE_ENABLE` is required and the complete file configuration must
+be valid, even when disabled. Invalid values return an error instead of silently
+disabling file output.
+
+Console and file output share one formatting layer, so both receive the same
+formatted bytes, ANSI setting, span events, and global filter. Use `LOG_FORMAT`,
+`LOG_ANSI`, and `LOG_LEVEL` (or `RUST_LOG`) to configure both. Set `LOG_ANSI=false`
+when text files should not contain terminal colors; JSON always disables ANSI.
+Changing the Logger after `from_env` changes both outputs at initialization.
+The global filter applies to spans as well as events: `RUST_LOG=warn` excludes
+INFO request spans, so neither output includes their fields on WARN events.
+
+The removed `LOG_FILE_FORMAT`, `LOG_FILE_LEVEL`, and `LOG_FILE_ANSI` settings are
+rejected as unknown file settings. Remove them and use the shared settings above.
+The corresponding `LoggerFileAppender` fields and the `merge_with_logger` /
+`format_or_default` helpers have also been removed. File configuration now only
+controls enabling, non-blocking writes, rotation, path, filename, and retention.
 
 Environment-based configuration requires the `env` feature. Calling
 `Logger::new(...)` does not read `LOG_*`; use `Logger::from_env(...)` or

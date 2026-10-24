@@ -1,14 +1,11 @@
 //! HTTP request field extraction utilities.
 
+use http::Request;
 pub use http::header::FORWARDED;
-use http::{HeaderName, Request};
-
-/// The `X-Request-Id` header used for request correlation.
-pub const X_REQUEST_ID: HeaderName = HeaderName::from_static("x-request-id");
-/// The `Request-Id` fallback header used for request correlation.
-pub const REQUEST_ID: HeaderName = HeaderName::from_static("request-id");
-/// The `X-Forwarded-Proto` header used to determine the original URL scheme.
-pub const X_FORWARDED_PROTO: HeaderName = HeaderName::from_static("x-forwarded-proto");
+pub use http_extract::{
+    Error, REQUEST_ID, X_FORWARDED_PROTO, X_REQUEST_ID, extract_header_request_id,
+    extract_request_request_id, extract_request_url_scheme, extract_single_header_text,
+};
 
 /// Extract the http method from the request
 pub fn extract_http_method<T>(request: &Request<T>) -> &str {
@@ -53,13 +50,6 @@ pub fn extract_http_scheme<T>(request: &Request<T>) -> Option<&str> {
     request.uri().scheme().map(|s| s.as_str())
 }
 
-/// Extract the URL scheme from the request URI or proxy headers.
-pub fn extract_url_scheme<T>(request: &Request<T>) -> Option<&str> {
-    extract_http_scheme(request)
-        .or_else(|| extract_field_from_headers(request.headers(), &X_FORWARDED_PROTO))
-        .or_else(|| extract_forwarded_proto(request.headers()))
-}
-
 /// Extract the http target from the request
 pub fn extract_http_target<T>(request: &Request<T>) -> Option<&str> {
     request.uri().path_and_query().map(|s| s.as_str())
@@ -76,49 +66,13 @@ pub fn extract_url_query<T>(request: &Request<T>) -> Option<&str> {
 }
 
 /// Extract the user agent from the request headers
-pub fn extract_user_agent<T>(request: &Request<T>) -> Option<&str> {
-    extract_field_from_headers(request.headers(), &http::header::USER_AGENT)
+pub fn extract_user_agent<T>(request: &Request<T>) -> Result<Option<&str>, Error> {
+    extract_single_header_text(request.headers(), &http::header::USER_AGENT)
 }
 
 /// Extract the `Host` header value.
-pub fn extract_host<T>(request: &Request<T>) -> Option<&str> {
-    extract_field_from_headers(request.headers(), &http::header::HOST)
-}
-
-/// Extract the request id from the request headers
-pub fn extract_request_id<T>(request: &Request<T>) -> Option<&str> {
-    extract_request_id_from_headers(request.headers())
-}
-
-/// Extract the request id from the request headers
-pub fn extract_request_id_from_headers(headers: &http::HeaderMap) -> Option<&str> {
-    headers
-        .get(X_REQUEST_ID)
-        .or_else(|| headers.get(REQUEST_ID))
-        .and_then(|value| value.to_str().ok())
-}
-
-/// Extract a field from the request headers
-pub fn extract_field_from_headers<'a>(
-    headers: &'a http::HeaderMap,
-    field: &HeaderName,
-) -> Option<&'a str> {
-    headers.get(field).and_then(|value| value.to_str().ok())
-}
-
-fn extract_forwarded_proto(headers: &http::HeaderMap) -> Option<&str> {
-    let forwarded = extract_field_from_headers(headers, &FORWARDED)?;
-
-    forwarded.split(',').find_map(|entry| {
-        entry.split(';').find_map(|part| {
-            let (key, value) = part.trim().split_once('=')?;
-            if key.eq_ignore_ascii_case("proto") {
-                Some(value.trim_matches('"'))
-            } else {
-                None
-            }
-        })
-    })
+pub fn extract_host<T>(request: &Request<T>) -> Result<Option<&str>, Error> {
+    extract_single_header_text(request.headers(), &http::header::HOST)
 }
 
 #[cfg(test)]
@@ -130,15 +84,49 @@ mod tests {
     fn test_extract_request_id_with_x_request_id() {
         let mut headers = HeaderMap::new();
         headers.insert(X_REQUEST_ID, "test-id-1".parse().unwrap());
-        let request_id = extract_request_id_from_headers(&headers);
-        assert_eq!(request_id, Some("test-id-1"));
+        let request_id = extract_header_request_id(&headers);
+        assert_eq!(request_id, Ok(Some("test-id-1")));
+    }
+
+    #[test]
+    fn request_id_preserves_precedence_and_rejects_invalid_selected_headers() {
+        let mut headers = HeaderMap::new();
+        headers.insert(REQUEST_ID, "fallback".parse().unwrap());
+        assert_eq!(extract_header_request_id(&headers), Ok(Some("fallback")));
+        headers.insert(X_REQUEST_ID, "".parse().unwrap());
+        assert_eq!(extract_header_request_id(&headers), Ok(Some("")));
+
+        headers.append(X_REQUEST_ID, "second".parse().unwrap());
+        assert!(extract_header_request_id(&headers).is_err());
+        headers.insert(
+            X_REQUEST_ID,
+            http::HeaderValue::from_bytes(&[0xff]).unwrap(),
+        );
+        assert!(extract_header_request_id(&headers).is_err());
+
+        headers.remove(X_REQUEST_ID);
+        headers.append(REQUEST_ID, "second".parse().unwrap());
+        assert!(extract_header_request_id(&headers).is_err());
+    }
+
+    #[test]
+    fn header_text_preserves_empty_values_and_reports_invalid_or_duplicate_values() {
+        let mut headers = HeaderMap::new();
+        let field = http::header::USER_AGENT;
+        assert_eq!(extract_single_header_text(&headers, &field), Ok(None));
+        headers.insert(&field, "".parse().unwrap());
+        assert_eq!(extract_single_header_text(&headers, &field), Ok(Some("")));
+        headers.append(&field, "second".parse().unwrap());
+        assert!(extract_single_header_text(&headers, &field).is_err());
+        headers.insert(&field, http::HeaderValue::from_bytes(&[0xff]).unwrap());
+        assert!(extract_single_header_text(&headers, &field).is_err());
     }
 
     #[test]
     fn test_extract_request_id_without_request_id() {
         let request = Request::builder().body(()).unwrap();
-        let request_id = extract_request_id(&request);
-        assert_eq!(request_id, None);
+        let request_id = extract_request_request_id(&request);
+        assert_eq!(request_id, Ok(None));
     }
 
     #[test]
@@ -148,7 +136,7 @@ mod tests {
             .body(())
             .unwrap();
         let user_agent = extract_user_agent(&request);
-        assert_eq!(user_agent, Some("test-user-agent"));
+        assert_eq!(user_agent, Ok(Some("test-user-agent")));
     }
 
     #[test]
@@ -158,7 +146,7 @@ mod tests {
             .body(())
             .unwrap();
         let host = extract_host(&request);
-        assert_eq!(host, Some("test-host"));
+        assert_eq!(host, Ok(Some("test-host")));
     }
 
     #[test]
@@ -175,7 +163,10 @@ mod tests {
             .body(())
             .unwrap();
         assert_eq!(extract_network_protocol_name(&request), "http");
-        assert_eq!(extract_url_scheme(&request), Some("https"));
+        assert_eq!(
+            extract_request_url_scheme(&request).unwrap().as_deref(),
+            Some("https")
+        );
     }
 
     #[test]
@@ -198,22 +189,48 @@ mod tests {
     }
 
     #[test]
-    fn test_extract_url_scheme_from_x_forwarded_proto() {
+    fn test_extract_request_url_scheme_from_x_forwarded_proto() {
         let request = Request::builder()
             .uri("/items")
             .header(X_FORWARDED_PROTO, "https")
             .body(())
             .unwrap();
-        assert_eq!(extract_url_scheme(&request), Some("https"));
+        assert_eq!(
+            extract_request_url_scheme(&request).unwrap().as_deref(),
+            Some("https")
+        );
     }
 
     #[test]
-    fn test_extract_url_scheme_from_forwarded_header() {
+    fn url_scheme_preserves_source_order_and_normalizes_forwarding_values() {
+        for (uri, proto, expected) in [
+            ("https://example.com/items", "http", "https"),
+            ("/items", "http", "http"),
+            ("/items", "HTTPS, http", "https"),
+        ] {
+            let request = Request::builder()
+                .uri(uri)
+                .header(X_FORWARDED_PROTO, proto)
+                .header(FORWARDED, "for=192.0.2.60;proto=\"https\"")
+                .body(())
+                .unwrap();
+            assert_eq!(
+                extract_request_url_scheme(&request).unwrap().as_deref(),
+                Some(expected)
+            );
+        }
+    }
+
+    #[test]
+    fn test_extract_request_url_scheme_from_forwarded_header() {
         let request = Request::builder()
             .uri("/items")
             .header(FORWARDED, "for=192.0.2.60;proto=https;by=203.0.113.43")
             .body(())
             .unwrap();
-        assert_eq!(extract_url_scheme(&request), Some("https"));
+        assert_eq!(
+            extract_request_url_scheme(&request).unwrap().as_deref(),
+            Some("https")
+        );
     }
 }

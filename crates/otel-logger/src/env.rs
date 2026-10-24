@@ -1,13 +1,17 @@
 //! Environment variable configuration for Logger.
 
 use anyhow::{Context, Result};
-use config::{Config, Environment};
+use config::{Config, Environment, Source};
 
 use super::config::{Logger, LoggerFileAppender};
 use super::guard::LoggerGuard;
 use super::init::init_tracing_from_logger;
 
-/// Initialize a Logger from environment variables
+/// Initialize a Logger from environment variables.
+///
+/// Returns an error for invalid configuration. If any file-appender variables
+/// are present, they must include a valid `ENABLE` value. Console and file output
+/// share Logger's format, ANSI setting, and global filter.
 pub fn init_logger_from_env(prefix: Option<&str>) -> Result<Logger> {
     let prefix = prefix.unwrap_or("LOG");
     let file_prefix = format!("{prefix}_FILE");
@@ -17,9 +21,8 @@ pub fn init_logger_from_env(prefix: Option<&str>) -> Result<Logger> {
         .try_deserialize()
         .context("Failed to deserialize environment variables")?;
 
-    if let Some(file_appender) = load_file_appender_from_env(&file_prefix) {
-        let merged_file_appender = file_appender.merge_with_logger(&logger);
-        logger = logger.with_file_appender(Some(merged_file_appender));
+    if let Some(file_appender) = load_file_appender_from_env(&file_prefix)? {
+        logger = logger.with_file_appender(Some(file_appender));
     }
 
     Ok(logger)
@@ -40,6 +43,13 @@ fn build_env_config(prefix: &str) -> Result<Config> {
         .context("Failed to read environment configuration")
 }
 
-fn load_file_appender_from_env(prefix: &str) -> Option<LoggerFileAppender> {
-    build_env_config(prefix).ok()?.try_deserialize().ok()
+fn load_file_appender_from_env(prefix: &str) -> Result<Option<LoggerFileAppender>> {
+    let config = build_env_config(prefix)?;
+    if config.collect()?.is_empty() {
+        return Ok(None);
+    }
+    config
+        .try_deserialize()
+        .map(Some)
+        .with_context(|| format!("Invalid file logging configuration ({prefix})"))
 }

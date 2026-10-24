@@ -18,8 +18,8 @@ pub struct HelloQuery {
     pub offset: Option<usize>,
 }
 
-#[tracing::instrument]
-async fn hello(q: Query<HelloQuery>) -> &'static str {
+#[tracing::instrument(skip(_q))]
+async fn hello(_q: Query<HelloQuery>) -> &'static str {
     "Hello world!"
 }
 

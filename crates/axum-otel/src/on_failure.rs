@@ -7,7 +7,8 @@ use tracing::Level;
 /// Original implementation from [tower-http](https://github.com/tower-rs/tower-http/blob/main/tower-http/src/trace/on_failure.rs).
 ///
 /// This component updates the span's `otel.status_code` and `otel.status_description`
-/// when a server error occurs.
+/// when a server status, service, or response-body error occurs, independently
+/// of the configured event level.
 ///
 /// # Example
 ///
@@ -61,15 +62,16 @@ impl OnFailure<ServerErrorsFailureClass> for AxumOtelOnFailure {
             latency = %latency.as_millis(),
             "response failed"
         );
-        match failure_classification {
-            ServerErrorsFailureClass::StatusCode(status) if status.is_server_error() => {
-                span.record("otel.status_code", "ERROR");
-                span.record(
-                    "otel.status_description",
-                    tracing::field::display(failure_classification),
-                );
-            }
-            _ => {}
+        let is_error = match &failure_classification {
+            ServerErrorsFailureClass::StatusCode(status) => status.is_server_error(),
+            ServerErrorsFailureClass::Error(_) => true,
+        };
+        if is_error {
+            span.record("otel.status_code", "ERROR");
+            span.record(
+                "otel.status_description",
+                tracing::field::display(failure_classification),
+            );
         }
     }
 }

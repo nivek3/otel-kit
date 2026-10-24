@@ -85,8 +85,6 @@ fn endpoint_configured(endpoint_env: &str) -> bool {
 /// }
 /// ```
 pub fn init_tracer_provider(resource: &Resource) -> Result<SdkTracerProvider> {
-    global::set_text_map_propagator(TraceContextPropagator::new());
-
     let builder = SdkTracerProvider::builder().with_resource(resource.clone());
 
     let tracer_provider = if exporter_enabled(OTEL_EXPORTER_OTLP_TRACES_ENDPOINT) {
@@ -98,6 +96,7 @@ pub fn init_tracer_provider(resource: &Resource) -> Result<SdkTracerProvider> {
         builder.build()
     };
 
+    global::set_text_map_propagator(TraceContextPropagator::new());
     global::set_tracer_provider(tracer_provider.clone());
 
     Ok(tracer_provider)
