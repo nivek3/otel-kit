@@ -15,14 +15,15 @@ keywords = ["tracing", "opentelemetry", "http"]
 
 [features]
 default = []
-fields = ["dep:http"]
+fields = ["dep:http", "dep:http-extract", "http-extract/request-id", "http-extract/scheme"]
 macros = ["dep:tracing"]
 http = ["fields", "dep:http", "dep:opentelemetry", "dep:opentelemetry-http"]
 context = ["http", "dep:tracing", "dep:tracing-opentelemetry"]
-span = ["context", "macros"]
+span = ["context", "macros", "http-extract/authority"]
 
 [dependencies]
 http = { workspace = true, optional = true }
+http-extract = { workspace = true, optional = true }
 opentelemetry = { workspace = true, optional = true }
 opentelemetry-http = { workspace = true, optional = true }
 tracing = { workspace = true, optional = true }

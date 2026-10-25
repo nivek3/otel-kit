@@ -16,20 +16,6 @@ where
     LogFormat::deserialize(s.to_lowercase().trim().into_deserializer())
 }
 
-/// Deserialize an optional LogFormat field
-pub fn deserialize_log_format_optional<'de, D>(
-    deserializer: D,
-) -> Result<Option<LogFormat>, D::Error>
-where
-    D: serde::Deserializer<'de>,
-{
-    let s = String::deserialize(deserializer)?;
-    if s.trim().is_empty() {
-        return Ok(None);
-    }
-    deserialize_log_format(s.into_deserializer()).map(Some)
-}
-
 /// Deserialize a required Level field
 pub fn deserialize_level_required<'de, D>(deserializer: D) -> Result<Level, D::Error>
 where
@@ -37,18 +23,6 @@ where
 {
     let s = String::deserialize(deserializer)?;
     s.parse().map_err(serde::de::Error::custom)
-}
-
-/// Deserialize an optional Level field
-pub fn deserialize_level_optional<'de, D>(deserializer: D) -> Result<Option<Level>, D::Error>
-where
-    D: serde::Deserializer<'de>,
-{
-    let s = String::deserialize(deserializer)?;
-    if s.trim().is_empty() {
-        return Ok(None);
-    }
-    s.parse().map(Some).map_err(serde::de::Error::custom)
 }
 
 /// Deserialize attributes from string format "key=value,key2=value2"
@@ -203,23 +177,10 @@ mod tests {
                 deserialize_log_format::<StrDeserializer>(input.into_deserializer()).unwrap(),
                 expected,
             );
-            assert_eq!(
-                deserialize_log_format_optional::<StrDeserializer>(input.into_deserializer())
-                    .unwrap(),
-                Some(expected),
-            );
         }
-        assert_eq!(
-            deserialize_log_format_optional::<StrDeserializer>("  ".into_deserializer()).unwrap(),
-            None,
-        );
         for input in ["", "invalid"] {
             assert!(deserialize_log_format::<StrDeserializer>(input.into_deserializer()).is_err());
         }
-        assert!(
-            deserialize_log_format_optional::<StrDeserializer>("invalid".into_deserializer())
-                .is_err(),
-        );
     }
 
     #[test]

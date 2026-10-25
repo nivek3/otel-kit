@@ -84,6 +84,21 @@ Environment support does not load a `.env` file. The examples call
 `dotenv::dotenv()` before initialization to load that file into the process
 environment.
 
+## Initialization failures
+
+Global subscriber installation returns an error if a subscriber is already
+installed. Providers supplied to that installation are shut down on failure;
+`setup_tracing` also shuts down providers created before a later provider fails
+to initialize. Failure cleanup releases any non-blocking file writer owned by
+the Logger initialization path.
+
+Initialization remains a process-startup operation. The public provider helpers
+still register the tracer/meter providers globally, and successful tracer
+construction installs the trace-context propagator. Failure cleanup does not
+restore previous global state, and subscriber installation itself may partially
+change global state before reporting an error. Do not treat an error as a
+transactional rollback or assume initialization can be retried safely.
+
 ## Shutdown order
 
 Keep `LoggerGuard` or `OtelGuard` alive until application shutdown. Explicit

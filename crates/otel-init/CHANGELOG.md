@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+
+- Return subscriber installation errors instead of panicking, and shut down the supplied providers if installation fails.
+- Install the global trace-context propagator only after tracer provider construction succeeds.
+
 ## [0.34.1]
 
 ### Added

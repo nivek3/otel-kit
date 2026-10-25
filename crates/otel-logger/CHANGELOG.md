@@ -6,6 +6,17 @@ Versions through `0.34.0` below were published under those predecessor names;
 
 ## [Unreleased]
 
+### Fixed
+
+- Format console and file logs once and fan out through native writers, avoiding duplicate dynamic span fields from multiple formatting layers.
+- Shut down already-created providers when a later provider fails to initialize; global registrations are not rolled back.
+- Report invalid or incomplete file environment configuration instead of silently disabling file output.
+
+### Breaking Changes
+
+- Console and file output now share Logger's format, ANSI setting, span events, and global filter. File output no longer has independent formatting or severity settings.
+- Remove `LoggerFileAppender.level`, `.format`, `.ansi`, `merge_with_logger`, and `format_or_default`. Replace `LOG_FILE_LEVEL`, `LOG_FILE_FORMAT`, and `LOG_FILE_ANSI` with the shared `LOG_LEVEL` / `RUST_LOG`, `LOG_FORMAT`, and `LOG_ANSI`; removed file settings now return configuration errors.
+
 ## [0.34.1]
 
 ### Changed
